@@ -18,7 +18,7 @@
 
 ACLOCAL_AMFLAGS	=  -I m4
 
-WWW_HOST	=  janus
+WWW_HOST	=  janus.hrz
 WWW_DIR		=  public_html/ip-sentinel
 WWW_FILES_ROOT	=  $(srcdir)/doc/index.html
 WWW_FILES_FILES	=  $(distdir).tar.bz2 $(distdir).tar.bz2.asc $(srcdir)/README $(srcdir)/NEWS
