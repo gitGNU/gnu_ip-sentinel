@@ -20,7 +20,7 @@
 .\" except that this permission notice may be stated in a translation
 .\" approved by the Free Software Foundation
 .\"  
-.TH ip-sentinel 8 "November 18 2002" "@PACKAGE@ 0.1"
+.TH ip-sentinel 8 "November 18 2002" "@PACKAGE@ 0.2"
 .\"
 .\" ====================
 .\"
@@ -126,6 +126,11 @@ Prints help message and exits.
 .TP
 .BR \-\-version
 Prints the version of the program and exits.
+.TP
+.I interface
+Specifies to network-interface where ip-sentinel listens for
+ARP-requests and sends ARP-replies. It is a name like "eth0"; aliases
+like "eth0:1" are not possible.
 .\"
 .\" ====================
 .\"
