@@ -206,7 +206,8 @@ the generated MAC address
 .RS
 
 The program will be executed only without evaluating its return value
-or something else.
+or something else. Please note, that the program will be executed in
+the chroot with restricted rights.
 .RE
 .TP
 .BR \-\-help | \-h
