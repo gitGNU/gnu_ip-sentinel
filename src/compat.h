@@ -70,9 +70,11 @@ struct  ether_arp {
 #if defined(__GNUC__)
 #  define UNUSED	__attribute__((__unused__))
 #  define NORETURN	__attribute__((__noreturn__))
+#  define ALWAYSINLINE	__attribute__((__always_inline__))
 #else
 #  define UNUSED
 #  define NORETURN
+#  define ALWAYSINLINE
 #endif
 
 #endif	//  H_ENSC_IPSENTINEL_SRC_COMPAT_H
