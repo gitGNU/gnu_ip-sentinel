@@ -185,7 +185,7 @@ int *oversize_sleep)
   struct in_addr const *	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
   struct in_addr const *	dst_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
   
-  mac = BlackList_getMac(blacklist, *dst_ip, &mac_buffer);
+  mac = BlackList_getMac(blacklist, *dst_ip, 0, &mac_buffer);
   if (mac==0) return;
   
   assert(src_ip!=0);
@@ -233,10 +233,11 @@ generateJobFromIntruder(struct Worker *worker,
   struct ether_addr const	*mac;
   int				arp_count;
   struct RequestInfo		job;
-  struct in_addr const *	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
-  struct in_addr const *	dst_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
+  struct in_addr const *	src_ip  = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
+  struct in_addr const *	dst_ip  = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
+  struct ether_addr const *	src_mac = reinterpret_cast(struct ether_addr const *)(msg->data.arp_sha);
   
-  mac = BlackList_getMac(blacklist, *src_ip, &mac_buffer);
+  mac = BlackList_getMac(blacklist, *src_ip, src_mac, &mac_buffer);
   if (mac==0) return;
   
   assert(dst_ip!=0);
