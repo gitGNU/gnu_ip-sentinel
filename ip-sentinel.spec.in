@@ -34,7 +34,7 @@
 %define minitdir	%_sysconfdir/minit
 %define minitsvcdir	%minitdir/services/%name
 
-Summary:	A tool to prevent unauthorized usage of IPs
+Summary:	Tool to prevent unauthorized usage of IP addresses
 Name:		ip-sentinel
 Version:	@VERSION@
 Release:	0
@@ -101,14 +101,8 @@ This package provides the scripts which can be used to start ip-sentinel
 with the minit initconcept.
 
 
-##---------------------------------------------
-
-
 %prep
 %setup -q
-
-
-##---------------------------------------------
 
 
 %build
@@ -116,9 +110,6 @@ with the minit initconcept.
            --with-initrddir=%{_initrddir} \
            --with-username=%username %{?_without_dietlibc:--disable-dietlibc}
 %__make %{?_smp_mflags} all
-
-
-##---------------------------------------------
 
 
 %install
@@ -130,21 +121,12 @@ rm -rf $RPM_BUILD_ROOT
 %{?_without_minit:rm -rf $RPM_BUILD_ROOT%minitsvcdir}
 
 
-##---------------------------------------------
-
-
 %check
 %__make check
 
 
-##---------------------------------------------
-
-
 %clean
 rm -rf $RPM_BUILD_ROOT
-
-
-##---------------------------------------------
 
 
 %pre
@@ -170,7 +152,6 @@ fi
 
 %postun sysv
 test "$1" = 0 || %_initrddir/%service condrestart &>/dev/null
-
 
 
 %files
