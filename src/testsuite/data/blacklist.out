@@ -1,4 +1,4 @@
-TIME: (Re)reading blacklist. Active children: 0
+TIME: (Re)reading blacklist.
 192.168.42.0		12:23:34:45:56:67
 1.2.3.1		RANDOM
 192.168.42.1		ab:bc:cd:ef:f0:11
@@ -66,8 +66,8 @@ TIME: (Re)reading blacklist. Active children: 0
 1.4.6.14		10:10:10:10:10:70
 2.4.6.14		10:10:10:10:10:70
 1.2.3.18		RANDOM
-1.2.3.19		01:80:c2:00:0:00
-1.2.3.20		01:80:c2:00:0:01
+1.2.3.19		01:80:c2:00:00:00
+1.2.3.20		01:80:c2:00:00:01
 !192.168.0.23
 192.168.0.42		RANDOM
 0.0.0.0/255.255.255.255		RANDOM
