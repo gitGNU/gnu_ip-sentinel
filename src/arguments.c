@@ -61,20 +61,22 @@
 
 
 #define OPTION_MAC			1024
+#define OPTION_DIRECTION		1025
 
 static struct option
 cmdline_options[] = {
-  { "ipfile",  required_argument, 0, 'i' },
-  { "pidfile", required_argument, 0, 'p' },
-  { "logfile", required_argument, 0, 'l' },
-  { "errfile", required_argument, 0, 'e' },
-  { "user",    required_argument, 0, 'u' },
-  { "group",   required_argument, 0, 'g' },
-  { "nofork",  no_argument,       0, 'n' },
-  { "chroot",  required_argument, 0, 'r' },
-  { "help",    no_argument,       0, 'h' },
-  { "version", no_argument,       0, 'v' },
-  { "mac",     required_argument, 0, OPTION_MAC },
+  { "ipfile",    required_argument, 0, 'i' },
+  { "pidfile",   required_argument, 0, 'p' },
+  { "logfile",   required_argument, 0, 'l' },
+  { "errfile",   required_argument, 0, 'e' },
+  { "user",      required_argument, 0, 'u' },
+  { "group",     required_argument, 0, 'g' },
+  { "nofork",    no_argument,       0, 'n' },
+  { "chroot",    required_argument, 0, 'r' },
+  { "help",      no_argument,       0, 'h' },
+  { "version",   no_argument,       0, 'v' },
+  { "mac",       required_argument, 0, OPTION_MAC },
+  { "direction", required_argument, 0, OPTION_DIRECTION },
   { 0, 0, 0, 0 }
 };
 
@@ -102,9 +104,12 @@ printHelp(char const *cmd, int fd)
 	       "      --group|-g <GROUP>      run as group GROUP [gid of user]\n"
 	       "      --chroot|-r <DIR>       go into chroot-jail at DIR [<HOME>]\n"
 	       "      --nofork|-n             do not fork a daemon-process\n"
-	       "      --mac MAC               use MAC as the default faked mac address;\n"
+	       "      --mac <MAC>             use MAC as the default faked mac address;\n"
 	       "                              possible values are RANDOM, 802.1d, 802.3x\n"
 	       "                              or a real mac [RANDOM]\n"
+	       "      --direction <DIR>       answer arp-requests going into the specified\n"
+	       "                              direction (relative to the intruder) only.\n"
+	       "                              Valid values are 'FROM', 'TO' and 'BOTH'. [TO]\n"
 	       "      --help|-h               display this text and exit\n"
 	       "      --version               print version and exit\n"
 	       "      interface               ethernet-interface where to listen\n"
@@ -134,6 +139,18 @@ parseMac(char const *optarg, struct Arguments *options)
   }
 }
 
+static void
+parseDirection(char const *optarg, struct Arguments *options)
+{
+  if      (strcmp(optarg, "FROM")==0) options->arp_dir = dirFROM;
+  else if (strcmp(optarg, "TO")  ==0) options->arp_dir = dirTO;
+  else if (strcmp(optarg, "BOTH")==0) options->arp_dir = dirBOTH;
+  else {
+    WRITE_MSGSTR(2, "invalid value for '--direction' specified\n");
+    exit(1);
+  }
+}
+
 void
 parseOptions(int argc, char *argv[], struct Arguments *options)
 {
@@ -147,6 +164,7 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
   options->group    = 0;
   options->do_fork  = true;
   options->chroot   = 0;
+  options->arp_dir  = dirTO;
   options->mac_type = mcRANDOM;
 
   while (1) {
@@ -164,7 +182,8 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
       case 'n'	:  options->do_fork  = false;  break;
       case 'r'	:  options->chroot   = optarg; break;
       case 'v'	:  printVersion(1); exit(0);   break;
-      case OPTION_MAC	:  parseMac(optarg, options); break;
+      case OPTION_MAC		:  parseMac(optarg, options);       break;
+      case OPTION_DIRECTION	:  parseDirection(optarg, options); break;
 	
       default	:
 	WRITE_MSGSTR(2, "Try \"");
