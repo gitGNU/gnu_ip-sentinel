@@ -25,7 +25,9 @@ ether_SRCS			=
 endif
 
 lib_SRCS			=  arguments.c util.c blacklist.c 	\
-				   antidos.c vector.c $(ether_SRCS)
+				   antidos.c vector.c prioqueue.c	\
+				   worker.c				\
+				   $(ether_SRCS)
 
 EXTRA_ip_sentinel_SOURCES	=  ether.c
 ip_sentinel_SOURCES		=  ip-sentinel.c $(lib_SRCS)
@@ -35,7 +37,7 @@ AM_CPPFLAGS			=  -D_GNU_SOURCE
 noinst_HEADERS			=  antidos.h arguments.h arpmessage.h	\
 				   blacklist.h compat.h ip-sentinel.h	\
 				   parameters.h util.h vector.h		\
-				   wrappers.h vector.ic
+				   wrappers.h vector.ic prioqueue.ic
 
 EXTRA_DIST			=  $(testsuite_FILES)
 
