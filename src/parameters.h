@@ -19,7 +19,7 @@
 #ifndef H_IPSENTINEL_PARAMETERS_H
 #define H_IPSENTINEL_PARAMETERS_H
 
-#define MAX_CHILDS		20
+#define MAX_CHILDS		40
 #define MAX_ERRORS		6
 
   // To be switch-friendly, only a limited amount of random MACs will be used
@@ -48,8 +48,8 @@
   // ARP-requests with DOS-values below LOW will be answered; between LOW and
   // HIGH the probability of an answer is decreasing linearly and requests over
   // HIGH will not be answered.
-#define ANTIDOS_COUNT_LOW	10u
-#define ANTIDOS_COUNT_HIGH	50u
+#define ANTIDOS_COUNT_LOW	20u
+#define ANTIDOS_COUNT_HIGH	80u
 
   // Maximum DOS-values; this value is used to prevent overflows
 #define ANTIDOS_COUNT_MAX	1000u
