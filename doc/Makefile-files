@@ -17,6 +17,7 @@
 #  
 
 doc_FILES	=  doc/ip-sentinel.man
+doc_CLEANFILES	=  doc/ip-sentinel.8
 
 man_MANS	=  doc/ip-sentinel.8
 

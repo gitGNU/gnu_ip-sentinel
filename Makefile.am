@@ -27,7 +27,7 @@ SUBDIRS		=  . src
 DIST_SUBDIRS	=  $(SUBDIRS) m4
 
 EXTRA_DIST	=  ip-sentinel.spec ${contrib_FILES} $(doc_FILES)
-
+CLEANFILES	=  $(doc_CLEANFILES)
 
 include $(srcdir)/contrib/Makefile-files
 include $(srcdir)/doc/Makefile-files
