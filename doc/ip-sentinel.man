@@ -73,7 +73,7 @@ of these operations can by changed by the options described below.
 .BR \-\-user | \-u\ \fIusername\ \fRand\fB\ \-\-group | \-g\ \fIgroupname
 After doing basical initializations, the program will drop its
 privilegies by changing its user and group ID. The \fIusername\fR and
-\fIgroupname\fR parameters determine these new IDs and must by an
+\fIgroupname\fR parameters determine these new IDs and must be an
 alphanumeric username/groupname or a numeric uid/gid.
 
 .B Attention:
@@ -128,7 +128,7 @@ Prints help message and exits.
 Prints the version of the program and exits.
 .TP
 .I interface
-Specifies to network-interface where ip-sentinel listens for
+Specifies the network-interface where ip-sentinel listens for
 ARP-requests and sends ARP-replies. It is a name like "eth0"; aliases
 like "eth0:1" are not possible.
 .\"
@@ -144,9 +144,9 @@ The content of this file has the following syntax:
 .TP
 .IR  ip\  [ mac ]
 Specifies an IP which shall be blocked. "Blocked" means that
-ARP-replies will be generated telling that the IP \fIip\fR has the MAC
-\fImac\fR. When the MAC parameter is not given, a random one will be
-choosen.
+ARP-replies will be generated telling that the IP address \fIip\fR has
+the MAC \fImac\fR. When the MAC parameter is not given, a random one
+will be choosen.
 
 .B Attention:
 .\"
@@ -157,22 +157,22 @@ ip-sentinel host).
 
 Examples are: "192.168.42.23  11:22:33:44:55:66" or "10.0.0.0".
 .TP
-.IB net / mask
+.IB net / mask\ \fR[ \fImac\fR]
 Specifies that IPs of an entiry network shall be blocked. See above
-for the meaning of "blocked". Unlike at single IPs, it is not possible
-to specify a MAC address and a random one will be generated everytime.
+for the meaning of "blocked". It is possible to specify a MAC address;
+else a random one will be generated.
 
-Examples are: "169.0.0.0/8" or "192.168.8.15/255.255.65.31".
+Examples are: "169.0.0.0/8", "192.168.8.15/255.255.65.31" or "192.168.23.42/26 a:b:c:d:e:f".
 .TP
 .BI ! ip
-The give IP \fIip\fR will be ignored. By default any not specified IP
-will be ignored but when having blocked netmasks it may be usefully to
-allow certain IPs.
+The given IP address \fIip\fR will be ignored. By default, any not
+specified address will be ignored but when having blocked netmasks it
+may be usefully to allow certain IPs.
 
 An example is: "!192.168.23.42"
 .TP
 .BI ! net / mask
-Tells that IPs the given network shall be ignored.
+Tells that IPs of the given network shall be ignored.
 
 Examples are: "!192.168.1.0/255.255.255.0" or "!0.0.0.0/0" (the
 default).
@@ -182,14 +182,14 @@ A comment; will be ignored
 
 .PP
 .\"
-To be switch-friendly there are only a few random MACs possible which
+To be switch-friendly, there are only a few random MACs possible which
 are having the format "de:ad:be:ef:00:XX". Within a short timespan
 only 32 values are possible for \fIXX\fR.
 
-When having overlapping networks and/or single IPs, this with the most
-specified netmask (count of 1's) takes precedence. IPs have a netmask
-of 32. The behavior is unspecified when having networks with the same
-count of 1's or when having duplicate IPs.
+When having overlapping networks and/or single IPs, this one with the
+most specified netmask (count of 1's) takes precedence. IPs have a
+netmask of 32. The behavior is unspecified when having overlapping
+networks with the same count of 1's or when having duplicate IPs.
 
 .SS EXAMPLE
 .RS 0
