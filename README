@@ -172,6 +172,8 @@ EXAMPLES
    0.0.0.0/0      		## block anything by default
    !192.168.0.0/24		## allow IPs from 192.168.0.*
    192.168.0.23			## but reserve 192.168.0.23
+   192.168.{20-30}.0/24		## and all /24 subnets between 192.168.20.0
+                                ## and 192.168.30.0
    192.168.0.42  a:b:c:d:e:f	## and 192.168.0.42 and use a specific
 				## MAC there
 
