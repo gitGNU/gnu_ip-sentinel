@@ -21,6 +21,7 @@
 
 #include <net/ethernet.h>
 #include <net/if_arp.h>
+#include <netinet/if_ether.h>
 
 #include <features.h>    /* for the glibc version number */
 #if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || defined(__dietlibc__)
