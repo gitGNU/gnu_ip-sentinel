@@ -62,6 +62,7 @@ struct NetData
 {
     struct BaseData		v;
     struct in_addr		mask;
+    bool			no_ip;
 };
 
 static unsigned int
@@ -118,8 +119,10 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
   struct NetData const *	rhs = rhs_v;
   int				result;
   assert(lhs!=0 && rhs!=0);
-  
-  result = -getBitCount(lhs->mask.s_addr) + getBitCount(rhs->mask.s_addr);
+
+  result = -(lhs->no_ip ? 1 : 0) + (rhs->no_ip ? 1 : 0);
+  if (result==0)
+    result = -getBitCount(lhs->mask.s_addr) + getBitCount(rhs->mask.s_addr);
   if (result==0)
     result = -lhs->v.atmac.status + rhs->v.atmac.status;
 
@@ -135,6 +138,9 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
   else result = lhs->v.status - rhs->v.status;
 #endif  
 
+  if (result==0)
+    result = memcmp(&lhs->v.atmac, &rhs->v.atmac, sizeof(lhs->v.atmac));
+  
   return result;
 }
 
@@ -272,6 +278,7 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
   char			*pos;
   bool			has_mask  = false;
   bool			has_atmac = false;
+  bool			ignore_ip = false;
 
   struct in_addr	parse_ip;
   struct in_addr	parse_mask;
@@ -304,7 +311,11 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     if (*pos=='\0') break;
   }
 
-  if (inet_aton(start, &parse_ip)==0) {
+  if (strcmp(start, "*")==0) {
+    ignore_ip       = true;
+    parse_ip.s_addr = 0;		// make valgrind happy
+  }
+  else if (inet_aton(start, &parse_ip)==0) {
     writeUInt(2, line_nr);
     WRITE_MSGSTR(2, ": invalid ip '");
     WRITE_MSG   (2, start);
@@ -312,17 +323,36 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     return false;
   }
 
+  if (ignore_ip && parse_status==blIGNORE) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": can not use '!' with '*'");
+    return false;
+  }
+
     // The netmask-part
   if (pos<end) start = pos+1;
   else         start = pos;
   
-  if (!has_mask) parse_mask.s_addr = 0xffffffff;
-  else if (!BlackList_parseNetMask(&parse_mask, &start, end, line_nr)) return false;
+  if (!has_mask)
+    parse_mask.s_addr = 0xffffffff;
+  else if (ignore_ip) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": can not ignore both the IP but specify a netmask\n");
+    return false;
+  }
+  else if (!BlackList_parseNetMask(&parse_mask, &start, end, line_nr))
+    return false;
 
     // The @-mac -part
   if (!has_atmac && *start=='@') {
     has_atmac = true;
     ++start;
+  }
+
+  if (ignore_ip && !has_atmac) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": can not use '*' without an @mac specification\n");
+    return false;
   }
 
   assert(start<=end);
@@ -342,6 +372,12 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     if (!BlackList_parseMac(start, &atmac.mac, line_nr)) { return false; };
     if (pos<end) start = pos+1;
     else         start = pos;
+  }
+
+  if (ignore_ip && atmac.status==amNEGATIVE) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": can not use '!mac' with '*'");
+    return false;
   }
 
   assert(start<=end);
@@ -373,14 +409,15 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     }
   }
 
-  if (has_mask) {
+  if (has_mask || ignore_ip) {
     struct NetData *	data = Vector_pushback(&lst->net_list);
 
-    data->v.ip     = parse_ip;
-    data->mask     = parse_mask;
-    data->v.status = parse_status;
-    data->v.mac	   = parse_mac;
-    data->v.atmac  = atmac;
+    data->v.ip        = parse_ip;
+    data->mask.s_addr = ignore_ip ? 0 : parse_mask.s_addr;
+    data->no_ip       = ignore_ip;
+    data->v.status    = parse_status;
+    data->v.mac	      = parse_mac;
+    data->v.atmac     = atmac;
 
     data->v.ip.s_addr &= data->mask.s_addr;
   }
@@ -790,7 +827,8 @@ BlackList_printAtMac(int fd, struct AtMac const * atmac)
 
 static void
 BlackList_print_internal(int fd, struct BaseData const *data,
-			 struct in_addr const *mask)
+			 struct in_addr const *mask,
+			 bool no_ip)
 {
   char const 		*aux = 0;
 
@@ -802,10 +840,13 @@ BlackList_print_internal(int fd, struct BaseData const *data,
     default		:  assert(false);
   }
 
-  writeIP(fd, data->ip);
-  if (mask) {
-    WRITE_MSGSTR(fd, "/");
-    writeIP(fd, *mask);
+  if (no_ip) write(fd, "*", 1);
+  else {
+    writeIP(fd, data->ip);
+    if (mask) {
+      WRITE_MSGSTR(fd, "/");
+      writeIP(fd, *mask);
+    }
   }
     
   BlackList_printAtMac(fd, &data->atmac);
@@ -826,7 +867,7 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->ip_list);
 	 i!=Vector_end(&lst->ip_list); ++i) {
-      BlackList_print_internal(fd, &i->v, 0);
+      BlackList_print_internal(fd, &i->v, 0, false);
     }
   }
 
@@ -835,7 +876,7 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->net_list);
 	 i!=Vector_end(&lst->net_list); ++i) {
-      BlackList_print_internal(fd, &i->v, &i->mask);
+      BlackList_print_internal(fd, &i->v, &i->mask, i->no_ip);
     }
   }
 }
