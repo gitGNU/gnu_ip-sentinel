@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
   for (i=1; i<argc; ++i) {
     if (argv[i][0]=='e') {
-      void	*x = PriorityQueue_max(&q);
+      void const	*x = PriorityQueue_max(&q);
 
       if (x==0) WRITE_MSG(1, "<null>");
       else      print(1, x);
