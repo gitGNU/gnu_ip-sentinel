@@ -1,4 +1,4 @@
-## --*- makefile -*--
+## $Id$ --*- makefile -*--
 
 # Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -31,6 +31,9 @@ blacklist_check_LDADD		=  libenscsentinel.a
 
 tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
 				   testsuite/blacklist-check.sh
+
+tests_XTRA			=  testsuite/functions
+
 tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/blacklist-check.ips		\
 				   testsuite/data/blacklist-check.lst		\
@@ -40,12 +43,13 @@ tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/blacklist-check1.lst		\
 				   testsuite/data/blacklist-check1.out		\
 				   testsuite/data/blacklist-check1.res		\
-				   testsuite/data/blacklist.dat
+				   testsuite/data/blacklist.dat			\
+				   testsuite/data/blacklist.out
 
-TESTS				=  $(tests_SCRPTS)			\
+TESTS				=  $(tests_SCRPTS)				\
 				   testsuite/blacklist-check1.sh
 
-testsuite_FILES			=  $(tests_SCRPTS) $(tests_DAT)
+testsuite_FILES			=  $(tests_SCRPTS) $(tests_DAT) $(tests_XTRA)
 
 testsuite/blacklist-check1.sh:	testsuite/blacklist-check.sh
 				@rm -f $@
