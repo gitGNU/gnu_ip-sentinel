@@ -57,10 +57,10 @@ ip-sentinel \- keeps your IP space clean
 .B ip-sentinel
 starts a daemon which tries to prevent unauthorized usage of IPs
 within the local ethernet broadcastdomain by giving an answer to
-ARP-requests. After receiving such a reply, the requesting party stores
-the told MAC in its ARP-table and will send future packets to this
-MAC. Because this MAC is invalid, the host with the invalid IP can not
-be reached.
+ARP-requests. After receiving such a faked reply, the requesting party
+stores the told MAC in its ARP-table and will send future packets to
+this MAC. Because this MAC is invalid, the host with the invalid IP
+can not be reached.
 
 After startup it opens its logfiles, goes into a chroot jail, drops
 privileges and forks itself into background by default. The parameters
