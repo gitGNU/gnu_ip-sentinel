@@ -229,7 +229,7 @@ BlackList_parseNetMask(struct in_addr * const result, char **start,
       WRITE_MSGSTR(2, ": invalid netmask '");
       WRITE_MSG   (2, *start);
       WRITE_MSGSTR(2, "', first bad char was '");
-      write(2, endptr, 1);
+      Vwrite      (2, endptr, 1);
       WRITE_MSGSTR(2, "'\n");
       return false;
     }
@@ -513,7 +513,7 @@ BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_n
 
 #if 0  
   WRITE_MSGSTR(1, "Expanding line '");
-  write(1, start, end-start);
+  Vwrite      (1, start, end-start);
   WRITE_MSGSTR(1, "'\n");
 #endif  
   
@@ -833,14 +833,14 @@ BlackList_print_internal(int fd, struct BaseData const *data,
   char const 		*aux = 0;
 
   switch (data->status) {
-    case blUNDECIDED	:  write(fd, "?", 1); aux = "FAIL"; break;
-    case blIGNORE	:  write(fd, "!", 1); aux = "";     break;
-    case blRAND		:  aux = "RANDOM";    break;
+    case blUNDECIDED	:  Vwrite(fd, "?", 1); aux = "FAIL"; break;
+    case blIGNORE	:  Vwrite(fd, "!", 1); aux = "";     break;
+    case blRAND		:  aux = "RANDOM";                   break;
     case blSET		:  break;
     default		:  assert(false);
   }
 
-  if (no_ip) write(fd, "*", 1);
+  if (no_ip) Vwrite(fd, "*", 1);
   else {
     writeIP(fd, data->ip);
     if (mask) {

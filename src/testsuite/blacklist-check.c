@@ -22,6 +22,7 @@
 
 #include "blacklist.h"
 #include "arguments.h"
+#include "util.h"
 
 #include <stdbool.h>
 #include <signal.h>
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
   };
 
   if (argc!=4) {
-    write(2, "Wrong argument-count; aborting...\n", 33);
+    Vwrite(2, "Wrong argument-count; aborting...\n", 33);
     return EXIT_FAILURE;
   }
 
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
   BlackList_init(&lst, &args);
   BlackList_softUpdate(&lst);
   BlackList_print(&lst, 3);
-  write(1, "\n", 1);
+  Vwrite(1, "\n", 1);
 
   while (!ferror(ip_file) && !feof(ip_file)) {
     char		ip_str[128], mac_str[128];
@@ -86,14 +87,14 @@ int main(int argc, char *argv[])
     if (ip_str[0]=='#' || ip_str[0]=='\n' || ip_str[0]=='\0') continue;
     
     if (res_i==0 || res_r==0) {
-      write(2, "Invalid format; aborting...\n", 28);
+      Vwrite(2, "Invalid format; aborting...\n", 28);
       return EXIT_FAILURE;
     }
 
     if ((at_pos=strchr(ip_str, ','))!=0) {
       *at_pos = '\0';
       if (ether_aton_r(at_pos+1, &atmac)==0) {
-	write(2, "Invalid MAC in input-file...\n", 29);
+	Vwrite(2, "Invalid MAC in input-file...\n", 29);
 	return EXIT_FAILURE;
       }
     }
@@ -102,14 +103,14 @@ int main(int argc, char *argv[])
     }
 
     if (inet_aton(ip_str, &inp)==0) {
-      write(2, "Invalid IP; aborting...\n", 24);
+      Vwrite(2, "Invalid IP; aborting...\n", 24);
       return EXIT_FAILURE;
     }
 
     if (mac_str[0]!='-' && mac_str[0]!='R' &&
 	ether_aton_r(mac_str, &exp_result)==0)
     {
-      write(2, "Invalid MAC; aborting...\n", 25);
+      Vwrite(2, "Invalid MAC; aborting...\n", 25);
       return EXIT_FAILURE;
     }
 
