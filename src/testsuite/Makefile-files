@@ -71,6 +71,10 @@ tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/prioqueue-check3.out		\
 				   testsuite/data/simulate.cfg			\
 				   testsuite/data/simulate.inp			\
+				   testsuite/data/simulate-test.cmd		\
+				   testsuite/data/simulate-test.out		\
+				   testsuite/data/simulate-test.cfg		\
+				   testsuite/data/simulate-test.inp		\
 				   testsuite/data/simulate-L-L.cmd		\
 				   testsuite/data/simulate-L-L.out		\
 				   testsuite/data/simulate-L-R.cmd		\
