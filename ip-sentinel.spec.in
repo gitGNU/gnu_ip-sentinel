@@ -1,5 +1,9 @@
 ## $id: ip-sentinel.spec.in,v 1.3 2003/05/26 21:53:02 ensc Exp $		--*- rpm-spec -*--
 
+## Supports a '--without dietlibc' option which disables linking
+## against dietlibc
+
+
 %{!?username:%define username	ip-sentinel}
 %define service		ip-sentinel
 %define homedir		%_var/lib/ip-sentinel
