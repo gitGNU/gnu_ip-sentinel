@@ -26,9 +26,11 @@ check_SCRIPTS			=  testsuite/blacklist-check1.sh
 
 blacklist_parser_SOURCES	=  testsuite/blacklist-parser.c
 blacklist_parser_LDADD		=  libenscsentinel.a
+blacklist_parser_CPPFLAGS	=  -DENSC_TESTSUITE
 
 blacklist_check_SOURCES		=  testsuite/blacklist-check.c
 blacklist_check_LDADD		=  libenscsentinel.a
+blacklist_check_CPPFLAGS	=  -DENSC_TESTSUITE
 
 tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
 				   testsuite/blacklist-check.sh
