@@ -156,4 +156,6 @@ int main(int argc, char *argv[])
       WRITE_MSGSTR(FD, "\n");
     }
   }
+
+  return 0;
 }
