@@ -1,3 +1,32 @@
+Version 0.6.1
+=============
+
+	NOTE: large parts of the project were touched to implement the new
+	scheduler. Therefore, this version should be considered as
+	experimental; when you encounter problems, it is recommended to go
+	back to version 0.6 (after you reported those problems to me, of
+	course).
+
+	- FEATURE: ip-sentinel will answer arp-requests *from* intruders also.
+	  This feature is disabled by default; you can enable it with the new
+	  '--direction FROM/BOTH' cmdline option. Suggested by Mark ZZZ Smith.
+	
+	- FEATURE: changed from forked worker-processes to one worker
+	  process with an own scheduler; this allows to increase the number
+	  of pending ARP-replies significantly (formerly 40, now 511; see
+	  src/parameters.h) without lowering system performance.
+	
+	- LEGACY BREAKAGE: enhanced/changed the log-format; when you want
+	  the old one, go into Worker_printJob() in src/worker.c and change
+	  the '#if 0' to '#if 1'. Note that this preprocessor directive can
+	  and will disappear in future versions without explicit warnings.
+	
+	- FEATURE: a '--mac' option was added which allows to specify the
+	  used mac-address; this option and the config-file understands
+	  special values like '802.1d' or '802.3x'. This was suggested by
+	  Mark ZZZ Smith.
+	
+
 Version 0.6
 ===========
 	- FEATURE: support for numeric IP-ranges was added; suggested by
