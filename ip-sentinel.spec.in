@@ -17,9 +17,9 @@
 
 
 ## This package understands the following switches:
-## --without dietlibc        ...   disable usage of dietlibc
-## --without minit           ...   disable creation of 'minit' subpackage
-## --with    fedora          ...   enable fedora.us specific parts
+## --without dietlibc	     ...   disable usage of dietlibc
+## --without minit	     ...   disable creation of 'minit' subpackage
+## --with    fedora	     ...   enable fedora.us specific parts
 ## --define  username\ name  ...   set the name of the user running the daemon
 
 %define uid		1
@@ -38,7 +38,6 @@ Summary:	Tool to prevent unauthorized usage of IP addresses
 Name:		ip-sentinel
 Version:	@VERSION@
 Release:	0
-Epoch:		0
 License:	GPL
 Group:		System Environment/Daemons
 URL:		http://www.tu-chemnitz.de/~ensc/ip-sentinel
@@ -59,8 +58,8 @@ Requires:		init(ip-sentinel)
 Summary:		SysV initscripts for ip-sentinel
 Group:			System Environment/Base
 Provides:		init(ip-sentinel)
-Requires(preun):	%name = %epoch:%version-%release
-Requires(postun):	%name = %epoch:%version-%release
+Requires(preun):	%name = %version-%release
+Requires(postun):	%name = %version-%release
 Requires(preun):	initscripts
 Requires(postun):	initscripts
 Requires(post):		/sbin/chkconfig
@@ -71,7 +70,7 @@ Requires(preun):	/sbin/chkconfig
 Summary:		minit initscripts for ip-sentinel
 Group:			System Environment/Base
 Provides:		init(ip-sentinel)
-Requires:		%name = %epoch:%version-%release
+Requires:		%name = %version-%release
 Requires(pre):		minit-setup
 Requires(postun):	minit-setup
 
@@ -107,8 +106,8 @@ with the minit initconcept.
 
 %build
 %configure --enable-release \
-           --with-initrddir=%{_initrddir} \
-           --with-username=%username %{?_without_dietlibc:--disable-dietlibc}
+	   --with-initrddir=%{_initrddir} \
+	   --with-username=%username %{?_without_dietlibc:--disable-dietlibc}
 %__make %{?_smp_mflags} all
 
 
