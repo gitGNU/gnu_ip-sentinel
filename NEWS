@@ -1,6 +1,11 @@
-Version 0.11
-============
+Version 0.11.1
+==============
 
+	- updated copyright notices
+	
+
+Version 0.11 (2004-12-16)
+=========================
 	- FEATURE: hosts with a certain MAC can be blocked regardless of
 	  the IP. This feature has the syntax '*@<mac>' and can be used
 	  e.g. to isolate hosts which are infected by worms or viruses.
@@ -9,9 +14,8 @@ Version 0.11
 	  now the default options as already announced in version 0.8.
 
 
-Version 0.10
-============
-	
+Version 0.10 (2004-06-17)
+=========================
 	- cleaned up the code; take reusable variants for the vector* and
 	  fmt* functions
 
@@ -24,9 +28,8 @@ Version 0.10
 	  manually
 
 
-Version 0.9
-===========
-
+Version 0.9 (2003-12-16)
+========================
 	- networks with '@MAC' statements are taking precedence over those
 	  with the same netmask but without such statements. This makes it
 	  possible to declare a pool of MACs within a network with dynamic
@@ -42,9 +45,8 @@ Version 0.9
 	  (https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=110966)
 
 
-Version 0.8
-===========
-
+Version 0.8 (2003-10-31)
+========================
 	Default options/behavior have not been changed yet, but chances
 	are high that they will become '--poision --mac 802.3x --direction
 	BOTH'.
@@ -71,9 +73,8 @@ Version 0.8
 	  *from* intruders. Inspired by Mark Pierce.
 
 	
-Version 0.7
-===========
-
+Version 0.7 (2003-09-09)
+========================
 	NOTE: large parts of the project were touched to implement the new
 	scheduler. It has been tested extensively, but when you encounter
 	problems, it is recommended to go back to version 0.6 (after you
@@ -109,30 +110,30 @@ Version 0.7
 	  Mark ZZZ Smith.
 	
 
-Version 0.6
-===========
+Version 0.6 (2003-08-06)
+========================
 	- FEATURE: support for numeric IP-ranges was added; suggested by
 	  Jon Belanger
 	- ship minit run-script in contrib/
 	
 
-Version 0.5
-===========
+Version 0.5 (2003-07-15)
+========================
 	- BUGFIX: when having multiple interfaces in the host, ip-sentinel
 	  listened on all ones instead only on this given on the
 	  cmd-line. Thanks to Sergeev Sergey for reporting this.
 	- enhanced RHL-initscript
 	
-Version 0.4
-===========
+Version 0.4 (2003-05-27)
+========================
 	- logging was enhanced
 	- anti-DOS limits were increased a little bit
 	- FEATURE: it is allowed to specify a MAC for networks
 	- build with RH 5.2 was fixed
 	- a lot of minor cleanups
 
-Version 0.3
-===========
+Version 0.3 (2002-11-27)
+========================
 	- minor code-cleanups
 	- certain mechanism (anti-DOS, vector-resizing, sliding random
 	  MACs) were documented and parameterized ; see src/parameters.h
@@ -146,12 +147,12 @@ Version 0.3
 	- testsuite was modified to give more determined results with
 	  different bsort() implementations
 
-Version 0.2
-===========
+Version 0.2 (2002-11-22)
+========================
 	- build-fixes with RH 6.2
 	- minor build-fixes
 	- documentation was added
 
-Version 0.1
-===========
+Version 0.1 (2002-11-16)
+========================
 	- initial release
