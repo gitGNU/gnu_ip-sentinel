@@ -1,7 +1,13 @@
 Version 0.7.2
 =============
 
-	- BUGFIX: in '--direction TO' mode, ignore 0.0.0.0 automatically
+	- FEATURE: added '--poison' option which enables the generation of
+	  ARP-replies for the ip of intruders when an the intruder sends an
+	  ARP-request. When using a negated '@!MAC' syntax, this MAC will be
+	  used for the questionable IP. This option works only, when
+	  '--direction FROM|BOTH' is used.  Inspired by ideas of Sergeev Sergey.
+	
+	- BUGFIX: in '--direction FROM' mode, ignore 0.0.0.0 automatically
 	  since it is used for duplicate address detection and/or
 	  DHCPDISCOVER messages
 	

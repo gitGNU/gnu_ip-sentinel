@@ -1,5 +1,6 @@
+## $Id$
 # Process this file with autoconf to produce a configure script.
-AC_INIT(ip-sentinel, 0.7.1, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
+AC_INIT(ip-sentinel, 0.7.2, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
 AC_CONFIG_SRCDIR([src/antidos.c])
 AM_CONFIG_HEADER([config.h])
 
