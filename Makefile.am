@@ -26,8 +26,13 @@ WWW_FILES_FILES	=  $(distdir).tar.bz2 $(distdir).tar.bz2.asc $(srcdir)/README $(
 SUBDIRS		=  . src
 DIST_SUBDIRS	=  $(SUBDIRS) m4
 
-EXTRA_DIST	=  ip-sentinel.spec ${contrib_FILES} $(doc_FILES)
+EXTRA_DIST	=  ip-sentinel.spec ${contrib_FILES} $(doc_FILES) \
+		   disttest disttest-data
 CLEANFILES	=  $(doc_CLEANFILES)
+
+if MAINTAINER_MODE
+TESTS		=  disttest
+endif
 
 include $(srcdir)/contrib/Makefile-files
 include $(srcdir)/doc/Makefile-files
