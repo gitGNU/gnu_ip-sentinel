@@ -205,3 +205,6 @@ EXAMPLES
 TODO
 ----
 - validate the test-results
+- check if it is cheaper to have the 70 bytes of data or a pointer to
+  this data in the scheduler-heap; pointers have hidden costs for
+  memory-management and destroy L1/L2 caching
