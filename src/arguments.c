@@ -108,7 +108,7 @@ printHelp(char const *cmd, int fd)
 	       "      --nofork|-n             do not fork a daemon-process\n"
 	       "      --mac <MAC>             use MAC as the default faked mac address;\n"
 	       "                              possible values are LOCAL, RANDOM, 802.1d,\n"
-	       "                              802.3x or a real mac [RANDOM]\n"
+	       "                              802.3x or a real mac [802.3x]\n"
 	       "      --llmac <MAC>           use MAC as the default mac address in link-level\n"
 	       "                              headers when answering requests *from* intruders;\n"
 	       "                              additionally to the values described at '--mac',\n"
@@ -116,7 +116,7 @@ printHelp(char const *cmd, int fd)
 	       "                              the arp-header will be used. [LOCAL]\n"
 	       "      --direction <DIR>       answer arp-requests going into the specified\n"
 	       "                              direction (relative to the intruder) only.\n"
-	       "                              Valid values are 'FROM', 'TO' and 'BOTH'. [TO]\n"
+	       "                              Valid values are 'FROM', 'TO' and 'BOTH'. [BOTH]\n"
 	       "      --poison                generate faked ARP-answers for an intruder's ip\n"
 	       "                              address when *he* sends a request. Works only\n"
 	       "                              in combination with '--direction FROM|BOTH'.\n"
@@ -177,10 +177,11 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
   options->group    = 0;
   options->do_fork  = true;
   options->chroot   = 0;
-  options->arp_dir  = dirTO;
-  options->mac.type = mcRANDOM;
+  options->arp_dir  = dirBOTH;
   options->llmac.type = mcLOCAL;
-  options->do_poison  = false;
+  options->do_poison  = true;
+
+  Arguments_parseMac("802.3x", &options->mac, false);
 
   while (1) {
     int	c = getopt_long(argc, argv, "hi:p:l:e:u:g:nr:", cmdline_options, 0);
