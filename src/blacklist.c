@@ -46,7 +46,7 @@ struct AtMac
     enum {amNONE, amPOSITIVE, amNEGATIVE }	status;
 };
 
-struct IPData
+struct BaseData
 {
     struct in_addr		ip;
     BlackListStatus		status;
@@ -54,13 +54,15 @@ struct IPData
     struct AtMac		atmac;
 };
 
+struct IPData
+{
+    struct BaseData		v;
+};
+
 struct NetData
 {
-    struct in_addr		ip;
+    struct BaseData		v;
     struct in_addr		mask;
-    BlackListStatus		status;
-    struct ether_addr		mac;
-    struct AtMac		atmac;
 };
 
 static unsigned int
@@ -84,9 +86,9 @@ IPData_searchCompare(void const *lhs_v, void const *rhs_v)
   struct IPData const *		rhs = rhs_v;
   assert(lhs!=0 && rhs!=0);
 
-  if      (lhs->s_addr < rhs->ip.s_addr) return -1;
-  else if (lhs->s_addr > rhs->ip.s_addr) return +1;
-  else                                   return  0;
+  if      (lhs->s_addr < rhs->v.ip.s_addr) return -1;
+  else if (lhs->s_addr > rhs->v.ip.s_addr) return +1;
+  else                                     return  0;
 }
 
 static int
@@ -95,7 +97,7 @@ IPData_sortCompare(void const *lhs_v, void const *rhs_v)
   struct IPData const *		lhs = lhs_v;
   assert(lhs!=0);
   
-  return IPData_searchCompare(&lhs->ip, rhs_v);
+  return IPData_searchCompare(&lhs->v.ip, rhs_v);
 }
 
 static int UNUSED
@@ -105,7 +107,7 @@ IPData_uniqueCompare(void const *lhs_v, void const *rhs_v)
   struct IPData const *		rhs = rhs_v;
   assert(lhs!=0 && rhs!=0);
 
-  if (lhs->status!=rhs->status) return 1;
+  if (lhs->v.status!=rhs->v.status) return 1;
   else return IPData_sortCompare(lhs_v, rhs_v);
 }
 
@@ -127,9 +129,9 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
   if      (result!=0) {}
   else if (ntohl(lhs->mask.s_addr) < ntohl(rhs->mask.s_addr)) result = -1;
   else if (ntohl(lhs->mask.s_addr) > ntohl(rhs->mask.s_addr)) result = +1;
-  else if (ntohl(lhs->ip.s_addr)   < ntohl(rhs->ip.s_addr))   result = -1;
-  else if (ntohl(lhs->ip.s_addr)   > ntohl(rhs->ip.s_addr))   result = +1;
-  else result = lhs->status - rhs->status;
+  else if (ntohl(lhs->v.ip.s_addr) < ntohl(rhs->v.ip.s_addr)) result = -1;
+  else if (ntohl(lhs->v.ip.s_addr) > ntohl(rhs->v.ip.s_addr)) result = +1;
+  else result = lhs->v.status - rhs->v.status;
 #endif  
 
   return result;
@@ -142,8 +144,8 @@ NetData_uniqueCompare(void const *lhs_v, void const *rhs_v)
   struct NetData const *	rhs = rhs_v;
   assert(lhs!=0 && rhs!=0);
 
-  if      (lhs->status!=rhs->status)       return 1;
-  else if (lhs->ip.s_addr!=rhs->ip.s_addr) return 1;
+  if      (lhs->v.status!=rhs->v.status)       return 1;
+  else if (lhs->v.ip.s_addr!=rhs->v.ip.s_addr) return 1;
   else return NetData_sortCompare(lhs_v, rhs_v);
 }
 
@@ -373,21 +375,21 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
   if (has_mask) {
     struct NetData *	data = Vector_pushback(&lst->net_list);
 
-    data->ip     = parse_ip;
-    data->mask   = parse_mask;
-    data->status = parse_status;
-    data->mac	 = parse_mac;
-    data->atmac  = atmac;
+    data->v.ip     = parse_ip;
+    data->mask     = parse_mask;
+    data->v.status = parse_status;
+    data->v.mac	   = parse_mac;
+    data->v.atmac  = atmac;
 
-    data->ip.s_addr &= data->mask.s_addr;
+    data->v.ip.s_addr &= data->mask.s_addr;
   }
   else {
     struct IPData *	data = Vector_pushback(&lst->ip_list);
 
-    data->ip     = parse_ip;
-    data->status = parse_status;
-    data->mac	 = parse_mac;
-    data->atmac  = atmac;
+    data->v.ip     = parse_ip;
+    data->v.status = parse_status;
+    data->v.mac	   = parse_mac;
+    data->v.atmac  = atmac;
   }
 
   return true;
@@ -685,63 +687,72 @@ BlackList_update(BlackList *lst)
   BlackList_softUpdate(lst);
 }
 
-static bool
-BlackList_compareAtMac(struct AtMac const * lhs, struct ether_addr const *rhs)
+static enum { cmpIGNORE, cmpMATCH, cmpNOMATCH }
+BlackList_compareAtMac(struct AtMac const * lhs,
+		       BlackListStatus lhs_status,
+		       struct ether_addr const *rhs)
 {
-  bool		tmp;
+  bool			tmp;
   assert(lhs!=0);
 
-  if (lhs->status==amNONE)  return true;
-  if (rhs==0)               return false;
-  tmp = memcmp(&lhs->mac, rhs, sizeof(*rhs))==0;
+  if (lhs->status==amNONE)  return cmpMATCH;
+  else if (rhs==0)          return cmpIGNORE;
+  else                      tmp=memcmp(&lhs->mac, rhs, sizeof(*rhs))==0;
 
-  if (lhs->status==amPOSITIVE) return  tmp;
-  else                         return !tmp;
+  assert(lhs->status==amPOSITIVE || lhs->status==amNEGATIVE);
+  
+  if ( tmp && lhs->status==amPOSITIVE) return cmpMATCH;
+  if (!tmp && lhs->status==amNEGATIVE) return cmpMATCH;
+  if ( tmp && lhs_status!=blIGNORE)    return cmpIGNORE;
+
+  return cmpNOMATCH;
+}
+
+static bool
+BlackList_compareEntry(struct BaseData const *lhs,
+		       struct BlackListQuery *rhs,
+		       BlackListStatus *status,
+		       struct ether_addr **result)
+{
+  switch (BlackList_compareAtMac(&lhs->atmac, lhs->status, rhs->mac)) {
+    case cmpIGNORE	:  *status=blIGNORE; break;
+    case cmpMATCH	:
+      *status             = lhs->status;
+      rhs->result_buffer_ = lhs->mac;
+      *result             = &rhs->result_buffer_;
+
+      if (lhs->atmac.status==amNEGATIVE)
+	rhs->poison_mac = &lhs->atmac.mac;
+      break;
+    case cmpNOMATCH	:  break;
+    default		:  assert(false);
+  }
+
+  return *status!=blUNDECIDED;
 }
 
 struct ether_addr const *
-BlackList_getMac(BlackList const *lst_const,
+BlackList_getMac(BlackList const *lst,
 		 struct BlackListQuery *q)
 {
   struct ether_addr *		result = 0;
-    // 'status' is tied to 'result'; therefore compiler warnings about possible uninitialized usage
-    // can be ignored.
-  BlackListStatus		status;
-    // C does not allow Vector_begin()/end() functions accepting both const and non-const
-    // parameters. To prevent const_cast'ing in every call to these functions, const_cast the
-    // lst-object here...
-  BlackList *			lst = const_cast(BlackList *)(lst_const);
+  BlackListStatus		status = blUNDECIDED;
 
-    // just a short-cut...
-  register struct ether_addr * const	buf = &q->result_buffer_;
-  
   assert(lst!=0);
 
   {
-    struct IPData const	*data = Vector_search(&lst->ip_list,
-					      q->ip, IPData_searchCompare);
-    if (data!=0 && BlackList_compareAtMac(&data->atmac, q->mac)) {
-      status = data->status;
-      *buf   = data->mac;
-      result = buf;
-
-      if (data->atmac.status==amNEGATIVE) q->poison_mac = &data->atmac.mac;
-    }
+    struct IPData const	*data = Vector_search_const(&lst->ip_list,
+						    q->ip, IPData_searchCompare);
+    if (data!=0)
+      (void)BlackList_compareEntry(&data->v, q, &status, &result);
   }
 
-  if (result==0) {
-    struct NetData const *	data    = Vector_begin(&lst->net_list);
-    struct NetData const *	end_ptr = Vector_end(&lst->net_list);
-    for (; data!=end_ptr; ++data) {
-      if ((q->ip->s_addr & data->mask.s_addr) == data->ip.s_addr &&
-	  BlackList_compareAtMac(&data->atmac, q->mac)) {
-	status = data->status;
-	*buf   = data->mac;
-	result = buf;
-
-	if (data->atmac.status==amNEGATIVE) q->poison_mac = &data->atmac.mac;
-	break;
-      }
+  if (status==blUNDECIDED) {
+    struct NetData const *	data    = Vector_begin_const(&lst->net_list);
+    struct NetData const *	end_ptr = Vector_end_const(&lst->net_list);
+    for (; status==blUNDECIDED && data!=end_ptr; ++data) {
+      if ((q->ip->s_addr & data->mask.s_addr) != data->v.ip.s_addr) continue;
+      if (BlackList_compareEntry(&data->v, q, &status, &result))      break;
     }
   }
 
@@ -776,6 +787,34 @@ BlackList_printAtMac(int fd, struct AtMac const * atmac)
   }
 }
 
+static void
+BlackList_print_internal(int fd, struct BaseData const *data,
+			 struct in_addr const *mask)
+{
+  char const 		*aux = 0;
+
+  switch (data->status) {
+    case blUNDECIDED	:  write(fd, "?", 1); aux = "FAIL"; break;
+    case blIGNORE	:  write(fd, "!", 1); aux = "";     break;
+    case blRAND		:  aux = "RANDOM";    break;
+    case blSET		:  break;
+    default		:  assert(false);
+  }
+
+  writeIP(fd, data->ip);
+  if (mask) {
+    WRITE_MSGSTR(fd, "/");
+    writeIP(fd, *mask);
+  }
+    
+  BlackList_printAtMac(fd, &data->atmac);
+  WRITE_MSGSTR(fd, "\t\t");
+
+  if (aux==0) aux = ether_ntoa(&data->mac);
+  WRITE_MSG(fd, aux);
+  WRITE_MSGSTR(fd, "\n");
+}
+
 void
 BlackList_print(BlackList *lst, int fd)
 {
@@ -786,23 +825,7 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->ip_list);
 	 i!=Vector_end(&lst->ip_list); ++i) {
-      char *		aux = 0;
-      
-      switch (i->status) {
-	case blUNDECIDED	:  write(fd, "?", 1); aux = "FAIL"; break;
-	case blIGNORE		:  write(fd, "!", 1); aux = "";     break;
-	case blRAND		:  aux = "RANDOM";    break;
-	case blSET		:  break;
-	default			:  assert(false);
-      }
-
-      writeIP(fd, i->ip);
-      BlackList_printAtMac(fd, &i->atmac);
-      WRITE_MSGSTR(fd, "\t\t");
-
-      if (aux==0) aux = ether_ntoa(&i->mac);
-      WRITE_MSG(fd, aux);
-      WRITE_MSGSTR(fd, "\n");
+      BlackList_print_internal(fd, &i->v, 0);
     }
   }
 
@@ -811,26 +834,7 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->net_list);
 	 i!=Vector_end(&lst->net_list); ++i) {
-      char *		aux = 0;
-
-      switch (i->status) {
-	case blUNDECIDED	:  write(fd, "?", 1); aux = "FAIL"; break;
-	case blIGNORE		:  write(fd, "!", 1); aux = "";     break;
-	case blRAND		:  aux = "RANDOM";    break;
-	case blSET		:  break;
-	default			:  assert(false);
-      }
-
-
-      writeIP(fd, i->ip);
-      WRITE_MSGSTR(fd, "/");
-      writeIP(fd, i->mask);
-      BlackList_printAtMac(fd, &i->atmac);
-      WRITE_MSGSTR(fd, "\t\t");
-
-      if (aux==0) aux = ether_ntoa(&i->mac);
-      WRITE_MSG(fd, aux);
-      WRITE_MSGSTR(fd, "\n");
+      BlackList_print_internal(fd, &i->v, &i->mask);
     }
   }
 }
