@@ -18,11 +18,23 @@
 
 ACLOCAL_AMFLAGS	=  -I m4
 
+WWW_HOST	=  janus
+WWW_DIR		=  public_html/ip-sentinel
+WWW_FILES_ROOT	=  $(srcdir)/doc/index.html
+WWW_FILES_FILES	=  $(distdir).tar.bz2 $(distdir).tar.bz2.asc $(srcdir)/README $(srcdir)/NEWS
+
 SUBDIRS		=  . src
 DIST_SUBDIRS	=  $(SUBDIRS) m4
+
+EXTRA_DIST	=  ip-sentinel.spec ${contrib_FILES} $(doc_FILES)
+
+
+include $(srcdir)/contrib/Makefile-files
+include $(srcdir)/doc/Makefile-files
 
 include $(top_srcdir)/m4/validate.am
 include $(top_srcdir)/m4/changelog.am
 include $(top_srcdir)/m4/diet.am
 include $(top_srcdir)/m4/gpgsig.am
 include $(top_srcdir)/m4/substrule.am
+include $(top_srcdir)/m4/wwwpublish.am
