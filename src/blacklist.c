@@ -21,7 +21,6 @@
 #endif
 
 #include "blacklist.h"
-#include "ip-sentinel.h"
 #include "parameters.h"
 #include "util.h"
 #include "arguments.h"
@@ -589,9 +588,7 @@ BlackList_softUpdate(BlackList *lst)
   else if (lst->last_mtime != status.st_mtime) {
     
     writeMsgTimestamp(1);
-    WRITE_MSGSTR(1, ": (Re)reading blacklist. Active children: ");
-    writeUInt(1, child_count);
-    WRITE_MSGSTR(1, "\n");
+    WRITE_MSGSTR(1, ": (Re)reading blacklist.\n");
 
     fd = open(lst->args_->ipfile, O_RDONLY);
     if (fd==-1) {
@@ -610,9 +607,8 @@ BlackList_softUpdate(BlackList *lst)
       lst->last_mtime = status.st_mtime;
       error_count     = 0;
     }
+    close(fd);
   }
-
-  close(fd);
   
   if (error_count>0) {
     if (error_count>MAX_ERRORS) {
