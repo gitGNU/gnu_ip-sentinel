@@ -19,7 +19,7 @@
 #ifndef H_IPSENTINEL_PARAMETERS_H
 #define H_IPSENTINEL_PARAMETERS_H
 
-#define MAX_CHILDS		40
+#define MAX_REQUESTS		511
 #define MAX_ERRORS		6
 
   // To be switch-friendly, only a limited amount of random MACs will be used
