@@ -1,3 +1,17 @@
+Version 0.7.1
+=============
+
+	- made generated (tha,tpa) arp-parameters RFC826 compliant;
+	  formerly, broadcast-values were used. It will require some testing
+	  to see which version is more effective/working.
+
+	- FEATURE: allowed to specify MAC addresses for source-ip
+	  addresses.  This makes it possible to disturb intruders which are
+	  using officially assigned IP addresses. This feature has the
+	  syntax 'ip[/mask][@mac]' and takes only effect on packages coming
+	  *from* intruders. Inspired by Mark Pierce.
+
+	
 Version 0.7
 ===========
 
