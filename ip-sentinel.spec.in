@@ -1,6 +1,6 @@
 ## $Id$		--*- rpm-spec -*--
 
-%{!?username:%define	username	ip-sentinel}
+%{!?username:%define username	ip-sentinel}
 %define		service		ip-sentinel
 %define		homedir		%{_var}/lib/ip-sentinel
 
@@ -8,14 +8,15 @@ Summary:	A tool to prevent unauthorized usage of IPs
 Name:		ip-sentinel
 Version:	@VERSION@
 Release:	1
+Epoch:		0
 License:	GPL
 Group:		System Environment/Daemons
-Packager:	Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 URL:		http://www.tu-chemnitz.de/~ensc/ip-sentinel
 Source0:	http://www.tu-chemnitz.de/~ensc/ip-sentinel/files/%{name}-%{version}.tar.bz2
-PreReq:		/sbin/chkconfig /usr/sbin/userdel /usr/sbin/adduser
-PreReq:		/sbin/service
-BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
+Requires(pre):		/usr/sbin/useradd /usr/sbin/groupadd
+Requires(postun):	/usr/sbin/userdel /usr/sbin/groupdel
+Requires(post,preun):	/sbin/chkconfig
 
 %if %{?_without_dietlibc:0}%{!?_without_dietlibc:1}
 BuildRequires:	dietlibc
@@ -23,6 +24,11 @@ BuildRequires:	dietlibc
 
 
 %description
+IP Sentinel is a tool that tries to prevent unauthorized usage of
+IP addresses within an ethernet broadcast domain by answering ARP
+requests. After receiving faked replies, requesting parties store
+the MAC in their ARP tables and will send future packets to this
+invalid MAC, rendering the IP unreachable.
 
 
 %prep
@@ -31,16 +37,19 @@ BuildRequires:	dietlibc
 
 %build
 %configure --enable-release --with-username=%{username} %{?_without_dietlibc:--disable-dietlibc}
-%{__make} all check
+%{__make} %{?_smp_mflags} all
+%{__make} check
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make DESTDIR=${RPM_BUILD_ROOT} install-strip install-contrib
+%{__make} DESTDIR=${RPM_BUILD_ROOT} install
 
-install -d ${RPM_BUILD_ROOT}%{_sysconfdir}
-install -m750 -d ${RPM_BUILD_ROOT}%{homedir}
+%{__install} -d ${RPM_BUILD_ROOT}{%{_sysconfdir}/sysconfig,%{_initrddir}}
+%{__install} -m755 -p contrib/ip-sentinel.init      $RPM_BUILD_ROOT%{_initrddir}/ip-sentinel
+%{__install} -m644 -p contrib/ip-sentinel.sysconfig $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/ip-sentinel
+%{__install} -m750 -d ${RPM_BUILD_ROOT}%{homedir}
 
 
 %clean
@@ -48,35 +57,47 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %pre
-/usr/sbin/adduser -r -s /sbin/nologin -d %{homedir} -M		\
-	 	  -c 'IP sentinel user' %{username} &>/dev/null || true
+/usr/sbin/groupadd -r %{username} &>/dev/null || :
+/usr/sbin/useradd -r -s /sbin/nologin -M -d %{homedir}		\
+	 	  -c 'IP sentinel user' -g %{username} %{username} &>/dev/null || :
 
 %post
 /sbin/chkconfig --add %{service}
 
 %preun
 if test "$1" = "0"; then
+	%{_initrddir}/%{service} stop >/dev/null
 	/sbin/chkconfig --del %{service}
 fi
 
 %postun
 if test "$1" = "0"; then
-	/usr/sbin/userdel %{username} &>/dev/null || true
+	/usr/sbin/userdel  %{username} &>/dev/null || :
+	/usr/sbin/groupdel %{username} &>/dev/null || :
 elif test "$1" -ge 1; then
-	/sbin/service %{service} condrestart >/dev/null
+	%{_initrddir}/%{service} condrestart >/dev/null
 fi
 
 
 %files
 %defattr(-,root,root,-)
-%doc AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS
+%doc AUTHORS COPYING ChangeLog NEWS README THANKS
 %doc %{_mandir}/*/*
-%config /etc/init.d/*
-%config(noreplace) /etc/sysconfig/*
 %{_sbindir}/*
+%config %{_initrddir}/*
+%config(noreplace) %{_sysconfdir}/sysconfig/*
 %attr(-,root,%{username}) %{homedir}
 
 
 %changelog
+* Sat May 24 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0:@VERSION@-1
+- removed dependencies on /sbin/service
+- removed packager tag
+- create and remove group explicitely
+
+* Wed May 21 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0:0.3-1
+- applied fedora.us naming scheme
+- cleanups
+
 * Fri Nov 15 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0.1-1
 - initial build
