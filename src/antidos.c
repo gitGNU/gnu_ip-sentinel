@@ -21,6 +21,7 @@
 #endif
 
 #include "antidos.h"
+#include "parameters.h"
 
 #include <stdbool.h>
 #include <assert.h>
@@ -128,3 +129,8 @@ AntiDOS_update(AntiDOS *dos)
   }
 }
 
+bool
+AntiDOS_isOversized(AntiDOS *dos)
+{
+  return Vector_count(&dos->data) >= MAX_ANTIDOS_ENTRIES;
+}

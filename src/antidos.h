@@ -20,6 +20,8 @@
 #define H_IPSENTINEL_ANTIDOS_H
 
 #include "vector.h"
+
+#include <stdbool.h>
 #include <netinet/in.h>
 
 typedef struct
@@ -31,5 +33,6 @@ typedef struct
 void		AntiDOS_init(AntiDOS *);
 unsigned int	AntiDOS_registerIP(AntiDOS *, struct in_addr const);
 void		AntiDOS_update(AntiDOS *);
+bool		AntiDOS_isOversized(AntiDOS *);
 
 #endif	//  H_IPSENTINEL_ANTIDOS_H

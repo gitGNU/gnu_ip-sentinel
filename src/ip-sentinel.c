@@ -296,6 +296,7 @@ run(int sock, int if_idx, char const *filename)
   char				buffer[4096];
   ArpMessage const * const	msg    = reinterpret_cast(ArpMessage const *)(buffer);
   struct in_addr const	*	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
+  unsigned int			oversize_sleep = 1;
 
   memset(&addr, 0, sizeof(addr));
   addr.sll_family  = AF_PACKET;
@@ -340,6 +341,18 @@ run(int sock, int if_idx, char const *filename)
     if (mac==0) continue;
 
     assert(src_ip!=0);
+    if (!AntiDOS_isOversized(&anti_dos)) oversize_sleep = 1;
+    else {
+      writeMsgTimestamp(2);
+      WRITE_MSGSTR(2, "Too much requests from too much IPs; last IP was ");
+      writeIP     (2, *src_ip);
+      WRITE_MSGSTR(2, "\n");
+
+      sleep(oversize_sleep);
+      oversize_sleep = MIN(oversize_sleep+1, 10);
+      continue;
+    }
+
     arp_count = AntiDOS_registerIP(&anti_dos, *src_ip);
     do_omit   = ((arp_count>10 && arp_count<=50 && (rand()%40>=(50-arp_count))) ||
 		 (arp_count>50));
@@ -350,9 +363,11 @@ run(int sock, int if_idx, char const *filename)
       writeIP     (2, *src_ip);
       WRITE_MSGSTR(2, "; DOS-measurement was ");
       writeUInt   (2, arp_count);
+      WRITE_MSGSTR(2, "\n");
 
       continue;
     }
+
 
     handleMessage(sock, if_idx, mac, &msg->data);
   }
