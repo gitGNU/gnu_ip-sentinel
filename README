@@ -1,4 +1,4 @@
-Release notes for IP Sentinel, version 0.7
+Release notes for IP Sentinel, version 0.8
 ==========================================
 
 In a perfect environment there are managed switches with one host per
@@ -193,13 +193,27 @@ EXAMPLES
                                 ## and 192.168.30.0
    192.168.0.42  a:b:c:d:e:f	## and 192.168.0.42 and use a specific
 				## MAC there
+   10.0.0.1@a:a:a:a:a:a		## two tagged src-ip addresses
+   10.0.0.2@!1:1:1:1:1:1
 
    When "IP Sentinel" receives a request for 169.254.1.2 or 192.168.0.23,
    a reply like '... is-at de:ad:be:ef:0:29' will be created. IPs like
    192.168.0.1 will not be handled.
 
+   When an intruder is at "10.0.0.1" and uses the mac "a:a:a:a:a:a:",
+   a faked reply will be generated. Users at the same ip but another
+   mac will be ignored.
+
+   In opposite, users with ip "10.0.0.2" and mac "1:1:1:1:1:1" will
+   be ignored but intruders with other macs (e.g. "2:2:2:2:2:2") are
+   getting faked replies.  When --poision is used, ip-sentinel will
+   generate a "10.0.0.2 is at 1:1:1:1:1:1" arp-reply to a broad
+   address.
+
+
    'src/testsuite/data' contains other sample configfiles and expected
    result.
+
 
 
 TODO
@@ -208,3 +222,5 @@ TODO
 - check if it is cheaper to have the 70 bytes of data or a pointer to
   this data in the scheduler-heap; pointers have hidden costs for
   memory-management and destroy L1/L2 caching
+- find more reasonable defaults; I am tending to set them to
+  '--poision --mac 802.3x --direction BOTH'
