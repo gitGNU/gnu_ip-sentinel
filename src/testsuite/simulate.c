@@ -144,7 +144,8 @@ int main(int argc, char *argv[])
 
       WRITE_MSGSTR(FD, "  SRC: ");
       mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_spa, &arp->arp_sha, &mac_buffer);
-      if (mac==0) WRITE_MSGSTR(FD, "MISS\n");
+      if (((struct in_addr *)arp->arp_spa)->s_addr==0) WRITE_MSGSTR(FD, "MISS (DAD)\n");
+      else if (mac==0) WRITE_MSGSTR(FD, "MISS\n");
       else {
 	rq.mac = *mac;
 	rq.type = jobSRC;

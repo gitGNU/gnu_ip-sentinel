@@ -25,7 +25,7 @@ TIME: (Re)reading blacklist.
 
 [0.0.0.0,11:11:11:11:11:11, 192.168.0.1,ff:ff:ff:ff:ff:ff]
   DST: ether=[ff:ff:ff:ff:ff:ff,de:ad:be:ef:00:XX], arp=[de:ad:be:ef:00:XX,192.168.0.1, 11:11:11:11:11:11,0.0.0.0], sock=[ff:ff:ff:ff:ff:ff]
-  SRC: MISS
+  SRC: MISS (DAD)
 
 [192.168.0.1,ff:ff:ff:ff:ff:ff, 0.0.0.0,11:11:11:11:11:11]
   DST: MISS

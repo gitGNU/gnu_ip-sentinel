@@ -1,6 +1,10 @@
-Version 0.7.1
+Version 0.7.2
 =============
 
+	- BUGFIX: in '--direction TO' mode, ignore 0.0.0.0 automatically
+	  since it is used for duplicate address detection and/or
+	  DHCPDISCOVER messages
+	
 	- made generated (tha,tpa) arp-parameters RFC826 compliant;
 	  formerly, broadcast-values were used. It will require some testing
 	  to see which version is more effective/working.
