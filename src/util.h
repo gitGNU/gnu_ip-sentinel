@@ -75,5 +75,6 @@ void writeUInt(int fd, unsigned int nr);
 void writeMsgTimestamp(int fd);
 void writeIP(int fd, struct in_addr);
 
+void	Util_setRandomMac(struct ether_addr *res);
 
 #endif	//  H_IPSENTINEL_UTIL_H

@@ -33,6 +33,8 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
+static struct ether_addr const	DEFAULT_MAC = {{  0xde, 0xad, 0xbe, 0xef, 0, 0 } };
+
 void
 writeMsgTimestamp(int fd)
 {
@@ -133,4 +135,15 @@ xether_aton_r(char const *asc, struct ether_addr *addr)
   else mac = asc;
 
   return ether_aton_r(mac, addr);
+}
+
+
+void
+Util_setRandomMac(struct ether_addr *res)
+{
+  time_t		t = time(0);
+
+  *res                      = DEFAULT_MAC;
+  res->ether_addr_octet[5]  = (rand()%BLACKLIST_RAND_COUNT +
+			       t/BLACKLIST_RAND_PERIOD)%256;
 }

@@ -38,8 +38,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 
-
-struct ether_addr const		DEFAULT_MAC = {{  0xde, 0xad, 0xbe, 0xef, 0, 0 } };
 typedef enum {blUNDECIDED, blIGNORE, blSET, blRAND}	BlackListStatus;
 
 struct IPData
@@ -626,16 +624,6 @@ BlackList_update(BlackList *lst)
   BlackList_softUpdate(lst);
 }
 
-static void
-BlackList_setRandomMac(struct ether_addr *res)
-{
-  time_t			t = time(0);
-
-  *res                      = DEFAULT_MAC;
-  res->ether_addr_octet[5]  = (rand()%BLACKLIST_RAND_COUNT +
-			       t/BLACKLIST_RAND_PERIOD)%256;
-}
-
 struct ether_addr const *
 BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct ether_addr *res)
 {
@@ -676,7 +664,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
     switch (status) {
       case blIGNORE	:  result = 0;
       case blSET	:  break;
-      case blRAND	:  BlackList_setRandomMac(res); break;
+      case blRAND	:  Util_setRandomMac(res); break;
       default		:  assert(false); result = 0; break;
     }
   }
