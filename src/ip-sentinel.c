@@ -137,6 +137,9 @@ daemonize(struct Arguments *arguments)
   if (pid_fd!=-1) Eclose(pid_fd);
   Eclose(out_fd);
   Eclose(err_fd);
+
+  SETCLOEXEC(1);
+  SETCLOEXEC(2);
 }
 
 inline static int ALWAYSINLINE
@@ -357,6 +360,7 @@ generateSocket(char const *iface, int *idx)
   assert(iface!=0);
   assert(idx!=0);
 
+  SETCLOEXEC(sock);
   *idx = initIfaceInformation(sock, iface);
 
   memset(&addr, 0, sizeof(addr));
