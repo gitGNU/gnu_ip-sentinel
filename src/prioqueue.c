@@ -218,7 +218,7 @@ PriorityQueue_print(struct PriorityQueue const *q,
 		    void (*func)(int fd, void const*))
 {
   char		*delim = "";
-  int		i;
+  size_t	i;
   
   assert(q!=0);
   assert(func!=0);
