@@ -239,4 +239,25 @@ Erealloc(/*@only@*//*@out@*//*@null@*/ void *ptr,
   return res;
 }
 
+/*@unused@*/
+inline static /*@null@*//*@only@*/ void *
+Emalloc(size_t size)
+    /*@*/
+    /*@ensures maxSet(result) == size@*/
+{
+  register void /*@out@*/               *res = malloc(size);
+  FatalErrnoError(res==0 && size!=0, 1, "malloc()");
+    /*@-compdef@*/
+  return res;
+    /*@=compdef@*/
+}
+
+inline static void
+Epipe(int modus[2])
+{
+  register int		res = pipe(modus);
+  FatalErrnoError(res==-1, 1, "pipe()");
+}
+
+
 #endif	//  H_IPSENTINEL_WRAPPERS_H
