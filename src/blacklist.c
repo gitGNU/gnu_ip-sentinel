@@ -171,6 +171,14 @@ BlackList_free(BlackList *lst)
 }
 #endif
 
+#define PARSE_ERRROR(MSG)			\
+do {						\
+  writeUInt(2, line_nr);			\
+  WRITE_MSGSTR(2, ": " MSG "\n");		\
+  return false;					\
+} while (false)
+  
+
 static bool
 BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr)
 {
@@ -241,11 +249,7 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
 	return false;
       }
     }
-    else if (val<0 || val>32) {
-      writeUInt(2, line_nr);
-      WRITE_MSGSTR(2, ": invalid netmask (too small or large)\n");
-      return false;
-    }
+    else if (val<0 || val>32) PARSE_ERRROR("invalid netmask (too small or large)");
     else {
 	// Avoid (~0u << 32) because this gives ~0u, but not 0.
       parse_mask.s_addr   = ~0u;
@@ -280,11 +284,7 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
       if (*pos=='\0') break;
     }
 
-    if (parse_status==blIGNORE) {
-      writeUInt(2, line_nr);
-      WRITE_MSGSTR(2, ": can not both ignore an IP and assign a MAC\n");
-      return false;
-    }
+    if (parse_status==blIGNORE) PARSE_ERRROR("can not both ignore an IP and assign a MAC");
 
     if (ether_aton_r(start, &parse_mac)==0) {
       writeUInt(2, line_nr);
@@ -364,36 +364,14 @@ BlackList_iterateRange(BlackList *lst,
     // strtol() stays in valid memory since it returns at least at *list_end=='}'
   start = strtol(list_start, &err_ptr, 10);
 
-  if (err_ptr==0 || *err_ptr!='-') {
-    writeUInt(2, line_nr);
-    WRITE_MSGSTR(2, ": unexpected error while parsing a range\n");
-    return false;
-  }
+  if (err_ptr==0 || *err_ptr!='-') PARSE_ERRROR("unexpected error while parsing a range");
     
   end = strtol(err_ptr+1, &err_ptr, 10);
-  if (err_ptr==0 || *err_ptr!='}') {
-    writeUInt(2, line_nr);
-    WRITE_MSGSTR(2, ": range not terminated correctly\n");
-    return false;
-  }
 
-  if (start<0 || end<0) {
-    writeUInt(2, line_nr);
-    WRITE_MSGSTR(2, ": negative values are not allowed in ranges\n");
-    return false;
-  }
-
-  if (start>end) {
-    writeUInt(2, line_nr);
-    WRITE_MSGSTR(2, ": descending ranges are not allowed\n");
-    return false;
-  }
-
-  if (err_ptr>list_end) {
-    writeUInt(2, line_nr);
-    WRITE_MSGSTR(2, ": unexpected error while parsing range\n");
-    return false;
-  }
+  if (err_ptr==0 || *err_ptr!='}') PARSE_ERRROR("range not terminated correctly");
+  if (start<0 || end<0)            PARSE_ERRROR("negative values are not allowed in ranges");
+  if (start>end)                   PARSE_ERRROR("descending ranges are not allowed");
+  if (err_ptr>list_end)            PARSE_ERRROR("unexpected error while parsing range");
 
   for (; start<=end; ++start) {
     size_t	len = fillUInt(prefix_end, start);
@@ -432,21 +410,15 @@ BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_n
   for (i=start; i<end && *i!='#' && !parsed_line; ++i) {
     switch (*i) {
       case '{'	:
-	if (range_start!=0) {
-	  writeUInt(2, line_nr);
-	  WRITE_MSGSTR(2, ": nested ranges are not allowed\n");
-	  return false;
-	}
+	if (range_start!=0) PARSE_ERRROR("nested ranges are not allowed");
+
 	range_start = i;
 	range_type  = rgUNDECIDED;
 	break;
 
       case '}'	:
-	if (range_start==0) {
-	  writeUInt(2, line_nr);
-	  WRITE_MSGSTR(2, ": unexpected end of range\n");
-	  return false;
-	}
+	if (range_start==0) PARSE_ERRROR("unexpected end of range");
+
 	range_end  =i;
 	break;
 
@@ -470,21 +442,15 @@ BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_n
 	    assert(false);
 	}
 
-	if (is_mismatch) {
-	  writeUInt(2, line_nr);
-	  WRITE_MSGSTR(2, ": mixed range-types not allowed\n");
-	  return false;
-	}
+	if (is_mismatch) PARSE_ERRROR("mixed range-types not allowed");
 	
 	break;
       }
 
       default	:
-	if (range_start!=0 && (*i<'0' || *i>'9')) {
-	  writeUInt(2, line_nr);
-	  WRITE_MSGSTR(2, ": non-digits not allowed as range-marks\n");
-	  return false;
-	}
+	if (range_start!=0 && (*i<'0' || *i>'9'))
+	  PARSE_ERRROR("non-digits not allowed as range-marks");
+
 	break;
     }
 
@@ -498,10 +464,7 @@ BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_n
       memcpy(buf, start, range_start-start);
 
       switch (range_type) {
-	case rgUNDECIDED	:
-	  writeUInt(2, line_nr);
-	  WRITE_MSGSTR(2, ": can not parse range\n");
-	  return false;
+	case rgUNDECIDED	:  PARSE_ERRROR("can not parse range");
 
 	case rgLIST		:
 	    // 'end-range_end-1 >= 0' holds since 'range_end' points to the '}' and 'end' to the
@@ -530,11 +493,7 @@ BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_n
     }
   }
 
-  if (range_start!=0) {
-    writeUInt(2, line_nr);
-    WRITE_MSGSTR(2, ": range not closed\n");
-    return false;
-  }
+  if (range_start!=0) PARSE_ERRROR("range not closed");
 
   if (!parsed_line)
     BlackList_parseLine(lst, start, end, line_nr);
