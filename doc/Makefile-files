@@ -22,4 +22,4 @@ doc_CLEANFILES	=  doc/ip-sentinel.8
 man_MANS	=  doc/ip-sentinel.8
 
 %.8:		%.man
-		$(MAKE) substvar VARS='sysconfdir sbindir PACKAGE VERSION' INFILE='$<' OUTFILE='$@'
+		$(MAKE) substvar VARS='sysconfdir sbindir localstatedir PACKAGE VERSION' INFILE='$<' OUTFILE='$@'
