@@ -104,8 +104,8 @@ daemonize(Arguments *arguments)
   gid_t			gid;
   pid_t			daemon_pid;
 
-  err_fd = Eopen(arguments->errfile, O_WRONLY|O_CREAT|O_APPEND|O_NONBLOCK, 0700);
-  out_fd = Eopen(arguments->logfile, O_WRONLY|O_CREAT|O_APPEND|O_NONBLOCK, 0700);
+  err_fd = Eopen(arguments->errfile, O_WRONLY|O_CREAT|O_APPEND|O_NONBLOCK, 0600);
+  out_fd = Eopen(arguments->logfile, O_WRONLY|O_CREAT|O_APPEND|O_NONBLOCK, 0600);
   pid_fd = (!arguments->do_fork ? -1 :
 	    Eopen(arguments->pidfile, O_WRONLY|O_CREAT|O_TRUNC, 0755));
 
