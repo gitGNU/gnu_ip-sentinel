@@ -1,3 +1,10 @@
+Version 0.5
+===========
+	- BUGFIX: when having multiple interfaces in the host, ip-sentinel
+	  listened on all ones instead only on this given on the
+	  cmd-line. Thanks to Sergeev Sergey for reporting this.
+	- enhanced RHL-initscript
+	
 Version 0.4
 ===========
 	- logging was enhanced
