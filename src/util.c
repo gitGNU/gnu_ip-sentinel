@@ -114,7 +114,7 @@ writeIP(int fd, struct in_addr ip)
 }
 
 struct ether_addr *
-xether_aton_r(char const *asc, struct ether_addr const *addr)
+xether_aton_r(char const *asc, struct ether_addr *addr)
 {
   char const *mac;
   

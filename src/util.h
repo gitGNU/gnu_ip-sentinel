@@ -50,7 +50,7 @@
 #define XSTRCAT(dst, cnt, src) xstrcatn(dst, cnt, src, sizeof(src)-1)
 
 struct ether_addr *
-xether_aton_r(char const *asc, struct ether_addr const *addr);
+xether_aton_r(char const *asc, struct ether_addr *addr);
 
 inline static void
 xstrcatn(char **dst, size_t *cnt, char const *src, size_t src_len)
