@@ -30,11 +30,11 @@ check_SCRIPTS			=  testsuite/blacklist-check1.sh \
                                    testsuite/prioqueue-check3.sh
 
 blacklist_parser_SOURCES	=  testsuite/blacklist-parser.c
-blacklist_parser_LDADD		=  libenscsentinel.a libensc_vector.a
+blacklist_parser_LDADD		=  libenscsentinel.a $(LIBENSCVECTOR)
 blacklist_parser_CPPFLAGS	=  -DENSC_TESTSUITE
 
 blacklist_check_SOURCES		=  testsuite/blacklist-check.c
-blacklist_check_LDADD		=  libenscsentinel.a libensc_vector.a
+blacklist_check_LDADD		=  libenscsentinel.a $(LIBENSCVECTOR)
 blacklist_check_CPPFLAGS	=  -DENSC_TESTSUITE
 
 prioqueue_check_SOURCES		=  testsuite/prioqueue-check.c
@@ -42,7 +42,7 @@ prioqueue_check_LDADD		=  libenscsentinel.a
 prioqueue_check_CPPFLAGS	=  -DENSC_TESTSUITE
 
 simulate_SOURCES		=  testsuite/simulate.c
-simulate_LDADD			=  libenscsentinel.a libensc_vector.a
+simulate_LDADD			=  libenscsentinel.a $(LIBENSCVECTOR)
 simulate_CPPFLAGS		=  -DENSC_TESTSUITE
 
 tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
