@@ -74,6 +74,34 @@ Vector_sort(struct Vector *vec, int (*compare)(const void *, const void *))
   qsort(vec->data, vec->count, vec->elem_size, compare);
 }
 
+void
+Vector_unique(struct Vector *vec, int (*compare)(const void *, const void *))
+{
+  size_t		idx;
+  
+  if (vec->count<2) return;
+
+  for (idx=0; idx+1<vec->count; ++idx) {
+    char	*ptr=static_cast(char *)(vec->data) + idx*vec->elem_size;
+    char	*next_ptr = ptr + vec->elem_size;
+    size_t	next_idx  = idx + 1;
+
+    while (next_idx<vec->count &&
+	   compare(ptr, next_ptr)==0) {
+      ++next_idx;
+      next_ptr += vec->elem_size;
+    }
+
+    if (next_idx==vec->count)
+      vec->count = idx+1;
+    else if (next_idx-idx > 1) {
+      memmove(ptr + vec->elem_size,
+	      next_ptr, (vec->count - next_idx)*vec->elem_size);
+      vec->count -= (next_idx-idx-1);
+    }
+  }
+}
+
 static void
 Vector_resizeInternal(struct Vector *vec)
 {

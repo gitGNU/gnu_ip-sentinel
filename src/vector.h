@@ -35,6 +35,7 @@ void	Vector_init(struct Vector *, size_t elem_size);
 void	Vector_free(struct Vector *);
 void *	Vector_search(struct Vector *, void const *key, int (*compar)(const void *, const void *));
 void	Vector_sort(struct Vector *, int (*compar)(const void *, const void *));
+void	Vector_unique(struct Vector *, int (*compar)(const void *, const void *));
 void *	Vector_pushback(struct Vector *);
 void *	Vector_insert(struct Vector *, void const *key, int (*compar)(const void *, const void *));
 void	Vector_popback(struct Vector *);
