@@ -34,6 +34,14 @@
 #  define ethhdr		ethhdrX
 #  include <net/ethernet.h>
 #  undef  ethhdr
+
+#  ifndef HAVE_DIET_ETHER_NTOA
+char *			ether_ntoa(struct ether_addr const *addr);
+#  endif
+
+#  ifndef HAVE_DIET_ETHER_NTOA_R
+struct ether_addr *	ether_aton_r(const char *asc, struct ether_addr *addr);
+#  endif
 #endif
 
 
@@ -49,13 +57,6 @@
 #include <netinet/in.h>
 #undef sin
 
-
-#ifdef __dietlibc__
-#include <string.h>
-void *memcpy(void *dest, const void *src, size_t n);
-void *memset(void *s, int c, size_t n);
-int memcmp(const void *s1, const void *s2, size_t n);
-#endif
 
 #ifdef __dietlibc__
 #include <net/if_arp.h>
