@@ -266,7 +266,9 @@ handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_a
   pid = fork();
   switch (pid) {
     case -1	:
-      perror("fork()"); writeMsgTimestamp(2); WRITE_MSGSTR(2, "fork() failed");
+      perror("fork()");
+      writeMsgTimestamp(2);
+      WRITE_MSGSTR(2, ": fork() failed");
       ++error_count;
       if (error_count>MAX_ERRORS) {
 	WRITE_MSGSTR(2, "aborting...");
