@@ -217,28 +217,38 @@ sendPacket(int s, int if_idx, struct ether_addr const *mac, in_addr_t const ip,
 }
 
 static void
-handlePacket(int sock,  int if_idx, struct ether_addr const *mac, struct ether_arp const *data)
+handlePacket(int sock,  int if_idx, struct ether_addr const *mac,
+	     struct ether_arp const *data)
 {
-  char			buffer[1024];
-  char *		buf_ptr = buffer;
-  size_t		len     = sizeof(buffer);
+  char		buffer[128];
+  char *	buf_ptr = buffer;
+  size_t	len     = sizeof(buffer);
 
-  struct in_addr const	*source = reinterpret_cast(struct in_addr const *)(&data->arp_spa);
-  struct in_addr const	*target = reinterpret_cast(struct in_addr const *)(&data->arp_tpa);
+  struct in_addr const		*spa = reinterpret_cast(struct in_addr const *)   (&data->arp_spa);
+  struct in_addr const		*tpa = reinterpret_cast(struct in_addr const *)   (&data->arp_tpa);
+  struct ether_addr const	*sha = reinterpret_cast(struct ether_addr const *)(&data->arp_sha);
 
   assert(target!=0 && source!=0);
-  
-  XSTRCAT(&buf_ptr, &len, "Handle IP '");
-  xstrcat(&buf_ptr, &len, inet_ntoa(*target));
-  XSTRCAT(&buf_ptr, &len, "' requested by '");
-  xstrcat(&buf_ptr, &len, inet_ntoa(*source));
-  XSTRCAT(&buf_ptr, &len, "'\n");
 
+    // Because this function will be called from a child-process and the logfile will not be locked,
+    // try to make the write-operation as atomic as possible. Races can not prevented entirely since
+    // the timestamp will be given out separately, but it is unlikely because concurrenting
+    // child-processes will be started only after finishing some lengthy tasks (blacklist- and
+    // antidos management)
+  XSTRCAT(&buf_ptr, &len, ": Handle IP '");
+  xstrcat(&buf_ptr, &len, inet_ntoa(*tpa));
+  XSTRCAT(&buf_ptr, &len, "' requested by '");
+  xstrcat(&buf_ptr, &len, inet_ntoa(*spa));
+  XSTRCAT(&buf_ptr, &len, "' [");
+  xstrcat(&buf_ptr, &len, ether_ntoa(sha));
+  XSTRCAT(&buf_ptr, &len, "]\n");
+
+  writeMsgTimestamp(1);
   write(1, buffer, sizeof(buffer)-len);
 
-  sendPacket(sock, if_idx, mac, target->s_addr, 1, 0);
+  sendPacket(sock, if_idx, mac, tpa->s_addr, 1, 0);
   usleep(1500000);
-  sendPacket(sock, if_idx, mac, target->s_addr, 3, 2);
+  sendPacket(sock, if_idx, mac, tpa->s_addr, 3, 2);
 }
 
 static void
