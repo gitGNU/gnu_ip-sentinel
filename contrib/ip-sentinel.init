@@ -27,16 +27,19 @@ prog="ip-sentinel"
 start () {
 	echo -n $"Starting $prog: "
 	if test x"${NEEDS_NUMERIC_UID}" = xyes; then
+	    test -z "$GROUP" && \
+	    x=`id -g ${USER:-$defuser} 2>/dev/null` && GROUP="$x"
 	    x=`id -u ${USER:-$defuser} 2>/dev/null` && USER="$x"
 	fi
 
 	opt=
-	test "USER"    && opt="${opt}-u $USER "
-	test "CHROOT"  && opt="${opt}-r $CHROOT "
-	test "IPFILE"  && opt="${opt}-i $IPFILE "
-	test "LOGFILE" && opt="${opt}-i $LOGFILE "
-	test "ERRFILE" && opt="${opt}-i $ERRFILE "
-	test "OPTIONS" && opt="${opt}$OPTIONS"
+	test "$USER"    && opt="${opt}-u $USER "
+	test "$GROUP"   && opt="${opt}-g $GROUP "
+	test "$CHROOT"  && opt="${opt}-r $CHROOT "
+	test "$IPFILE"  && opt="${opt}-i $IPFILE "
+	test "$LOGFILE" && opt="${opt}-i $LOGFILE "
+	test "$ERRFILE" && opt="${opt}-i $ERRFILE "
+	test "$OPTIONS" && opt="${opt}$OPTIONS"
 
 	daemon ip-sentinel ${opt} ${DEVICE:-eth0}
 	RETVAL=$?
