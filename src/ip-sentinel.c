@@ -367,7 +367,7 @@ main(int argc, char *argv[])
 
   Arguments_fixupOptions(&arguments);
   
-  Worker_init(&worker, sock, if_idx);
+  Worker_init(&worker, &arguments, sock, if_idx);
 
   signal(SIGHUP,  sigHup);
 
