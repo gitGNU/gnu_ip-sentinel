@@ -228,7 +228,7 @@ handlePacket(int sock,  int if_idx, struct ether_addr const *mac,
   struct in_addr const		*tpa = reinterpret_cast(struct in_addr const *)   (&data->arp_tpa);
   struct ether_addr const	*sha = reinterpret_cast(struct ether_addr const *)(&data->arp_sha);
 
-  assert(target!=0 && source!=0);
+  assert(spa!=0 && tpa!=0 && sha!=0);
 
     // Because this function will be called from a child-process and the logfile will not be locked,
     // try to make the write-operation as atomic as possible. Races can not prevented entirely since
