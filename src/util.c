@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
+#include <netinet/ether.h>
 
 void
 writeMsgTimestamp(int fd)
@@ -110,4 +111,16 @@ writeIP(int fd, struct in_addr ip)
 {
   char const	*ip_str = inet_ntoa(ip);
   write(fd, ip_str, strlen(ip_str));
+}
+
+struct ether_addr *
+xether_aton_r(char const *asc, struct ether_addr const *addr)
+{
+  char const *mac;
+  
+  if      (strcmp(asc, "802.1d")==0) mac = "01:80:C2:00:00:00";
+  else if (strcmp(asc, "802.3x")==0) mac = "01:80:C2:00:00:01";
+  else mac = asc;
+
+  return ether_aton_r(mac, addr);
 }

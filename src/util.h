@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <sys/param.h>
 #include <string.h>
+#include <net/ethernet.h>
 
 
   /*@-namechecks@*/
@@ -47,6 +48,9 @@
 #define WRITE_MSGSTR(fd,str)	write(fd, str, sizeof(str)-1)
 
 #define XSTRCAT(dst, cnt, src) xstrcatn(dst, cnt, src, sizeof(src)-1)
+
+struct ether_addr *
+xether_aton_r(char const *asc, struct ether_addr const *addr);
 
 inline static void
 xstrcatn(char **dst, size_t *cnt, char const *src, size_t src_len)
