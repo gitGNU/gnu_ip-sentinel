@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>IP Sentinel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+    <meta name="description" content="IP Sentinel keeps your IP space clean by giving faked answers to ARP-requests for reserved IPs.">
+    <meta name="keywords" content="IP, ethernet broadcastdomain, ARP, ARP-reply, ARP-request, reserved IP">
+    <meta name="author" content="Enrico Scholz">
+
+    <style type="text/css">
+      dd.remark    { font-size:90% }
+      div.footnote { font-size:80% }
+    </style>
+  </head>
+
+  <body>
+    <h1>IP Sentinel</h1>
+
+    <p>This program tries to prevent unauthorized usage of IPs
+    within the local ethernet broadcastdomain by giving an answer
+    to ARP-requests. After receiving such a faked reply, the
+    requesting party stores the told MAC in its ARP-table and
+    will send future packets to this MAC. Because this MAC is
+    invalid, the host with the invalid IP can not be reached.</p>
+
+    <h3>Features</h3>
+    <ul>
+      <li>non-root execution in a chroot jail</li>
+      <li>freely customizable IPs (netmasks, negations)</li>
+    </ul>
+
+    <h2>News</h2>
+    <dl>
+      <dt>27 May 2003</dt>
+
+      <dd>Version <a href="files/ip-sentinel-0.4.tar.bz2">0.4</a>(95KiB)
+      released</dd>
+
+      <dd class="remark">This version allows to specify a MAC address
+      for networks and has an enhanced logging. Some parameters were
+      adjusted and smaller build-problems were solved.</dd>
+
+      
+      <dt>27 Nov 2002</dt>
+
+      <dd>Version <a href="files/ip-sentinel-0.3.tar.bz2">0.3</a>
+      (93KiB) released</dd>
+
+      <dd class="remark">Signal handling with dietlibc, and a typo
+      which caused excessive memory consumption were fixed. Parameters
+      of certain mechanisms were documented and placed into a central
+      header-file. Testsuite does not rely on a specific bsort()
+      implementation anymore.</dd>
+      
+      <dt>22 Nov 2002</dt>
+      <dd>Version <a href="files/ip-sentinel-0.2.tar.bz2">0.2</a>
+      (92KiB) released</dd>
+      <dd class="remark">Documentation was added and minor build-issues
+      were fixed in this version.</dd>
+      
+      <dt>16 Nov 2002</dt>
+      <dd>Version <a href="files/ip-sentinel-0.1.tar.bz2">0.1</a>
+      (88KiB) released</dd>
+    </dl>
+
+    <h2>Downloads</h2>
+    
+    <p>Latest sources and their GPG signatures can be found <a
+    href="files/">here</a>. Filenames which are having the format
+    <code>ip-sentinel-X.Y.tar.bz2</code> are official releases; such
+    with a triple version like <code>X.Y.Z</code> are inofficial
+    snapshots. A short description and further information are given
+    in <code><a href="files/README">README</a></code>; user visible
+    changes in <code><a href="files/NEWS">NEWS</a></code></p>
+
+    <p>Binary packages are <b>not</b> provided but can be built with
+    the usual</p>
+
+    <blockquote>
+      <code>./configure &amp;&amp; make &amp;&amp; su -c make install</code>
+    </blockquote>
+    
+    <p>Please look at the output of <q><code>./configure --help</code></q>
+    for further options. When using older versions of dietlibc, you will
+    have to use '--disable-dietlibc'. RPMs can be created by executing</p>
+
+    <blockquote>
+      <code>rpmbuild -tb ip-sentinel-&lt;<i>version</i>&gt;.tar.bz2
+    </blockquote>
+
+
+    <hr>
+    <address><a href="mailto:enrico.scholz@informatik.tu-chemnitz.de">Enrico Scholz</a></address>
+<!-- Created: Fri Nov 15 18:41:30 CET 2002 -->
+<!-- hhmts start -->
+Last modified: Tue May 27 14:02:57 CEST 2003
+<!-- hhmts end -->
+  </body>
+</html>
