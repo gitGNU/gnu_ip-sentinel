@@ -85,7 +85,7 @@ IPData_searchCompare(void const *lhs_v, void const *rhs_v)
 static int
 IPData_sortCompare(void const *lhs_v, void const *rhs_v)
 {
-  struct IPData const *	lhs = lhs_v;
+  struct IPData const *		lhs = lhs_v;
   assert(lhs!=0);
   
   return IPData_searchCompare(&lhs->ip, rhs_v);
@@ -191,13 +191,13 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
       return false;
     }
     else {
-      parse_mask.s_addr = 0;
-      for (; val>0; --val) {
-	parse_mask.s_addr >>= 1;
-	parse_mask.s_addr  |= 0x80000000;
+	// Avoid (~0u << 32) because this gives ~0u, but not 0.
+      parse_mask.s_addr   = ~0u;
+      if (val<32) {
+	parse_mask.s_addr <<= (32-val-1);
+	parse_mask.s_addr <<= 1;
       }
-
-      parse_mask.s_addr = htonl(parse_mask.s_addr);
+      parse_mask.s_addr   = htonl(parse_mask.s_addr);
     }
 
     if (pos<end) start = pos+1;
@@ -433,11 +433,11 @@ BlackList_print(BlackList *lst, int fd)
   assert(lst!=0);
   
   {
-    struct IPData const	*i;
+    struct IPData const		*i;
 
     for (i =Vector_begin(&lst->ip_list);
 	 i!=Vector_end(&lst->ip_list); ++i) {
-      char	*aux = ether_ntoa(&i->mac);
+      char *		aux = ether_ntoa(&i->mac);
       
       switch (i->status) {
 	case blUNDECIDED	:  write(fd, "?", 1); break;
