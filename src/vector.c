@@ -23,6 +23,7 @@
 #include "vector.h"
 #include "util.h"
 #include "wrappers.h"
+#include "parameters.h"
 
 #include <assert.h>
 
@@ -60,7 +61,7 @@ Vector_sort(struct Vector *vec, int (*compare)(const void *, const void *))
 static void
 Vector_resizeInternal(struct Vector *vec)
 {
-  vec->allocated *= vec->count * 12 / 10;
+  vec->allocated *= vec->count * VECTOR_SET_THRESHOLD;
   ++vec->allocated;
 
   assert(vec->allocated >= vec->count);
@@ -108,7 +109,7 @@ Vector_popback(struct Vector *vec)
 void
 Vector_resize(struct Vector *vec)
 {
-  if (vec->allocated * 15/10 > vec->count+1)
+  if (vec->allocated * VECTOR_DEC_THRESHOLD > vec->count+1)
     Vector_resizeInternal(vec);
 }
 

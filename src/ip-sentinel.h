@@ -19,8 +19,20 @@
 #ifndef H_IPSENTINEL_IPSENTINEL_H
 #define H_IPSENTINEL_IPSENTINEL_H
 
+#include "parameters.h"
+
+#include <stdbool.h>
 #include <signal.h>
 
 extern volatile sig_atomic_t	child_count;
+
+inline static bool
+isDOS(unsigned int count)
+{
+  return ((count>ANTIDOS_COUNT_LOW && count<=ANTIDOS_COUNT_HIGH &&
+	   (rand()%(ANTIDOS_COUNT_HIGH-ANTIDOS_COUNT_LOW)>=
+	    (ANTIDOS_COUNT_HIGH-count))) ||
+	  (count>ANTIDOS_COUNT_HIGH));
+}
 
 #endif	//  H_IPSENTINEL_IPSENTINEL_H
