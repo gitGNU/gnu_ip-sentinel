@@ -1,3 +1,18 @@
+Version 0.10
+============
+	
+	- cleaned up the code; take reusable variants for the vector* and
+	  fmt* functions
+
+	- fixed compilation with dietlibc 0.26
+
+	- LEGACY BREAKAGE: use tai64n timestamps for logging
+
+	- LEGACY BREAKAGE: remove the complicated 'minit' run-script; it
+	  is now a symlink and options must be configured in 'params'
+	  manually
+
+
 Version 0.9
 ===========
 
