@@ -19,7 +19,18 @@
 #ifndef H_ENSC_IPSENTINEL_SRC_COMPAT_H
 #define H_ENSC_IPSENTINEL_SRC_COMPAT_H
 
+#if defined(__dietlibc__) && !defined(ENSC_DIETLIBC_C99) && defined(__STRICT_ANSI__) && defined(__STDC_VERSION__)
+  // fixed in 0.25+
+#  include <sys/cdefs.h>
+#  undef inline
+
+#  undef  __STRICT_ANSI__
+#  include <stdint.h>
+#  define __STRICT_ANSI__
+#endif
+
 #ifdef __dietlibc__
+  // fixed in 0.27+
 #  define ethhdr		ethhdrX
 #  include <net/ethernet.h>
 #  undef  ethhdr
