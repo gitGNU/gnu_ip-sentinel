@@ -47,6 +47,8 @@
 
 #define XSTRCAT(dst, cnt, src) xstrcatn(dst, cnt, src, sizeof(src)-1)
 
+#define SETCLOEXEC(FD)		Efcntl_l(FD, F_SETFD, FD_CLOEXEC)
+
 struct ether_addr *
 xether_aton_r(char const *asc, struct ether_addr *addr);
 
