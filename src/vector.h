@@ -41,9 +41,12 @@ void *	Vector_insert(struct Vector *, void const *key, int (*compar)(const void 
 void	Vector_popback(struct Vector *);
 void	Vector_resize(struct Vector *vec);
 void	Vector_clear(struct Vector *vec);
-static void *	Vector_begin(struct Vector *);
-static void *	Vector_end(struct Vector *);
-static size_t	Vector_count(struct Vector *vec);
+static void const *	Vector_search_const(struct Vector const *, void const *key, int (*compar)(const void *, const void *));
+static void *		Vector_begin(struct Vector *);
+static void *		Vector_end(struct Vector *);
+static void const *	Vector_begin_const(struct Vector const *);
+static void const *	Vector_end_const(struct Vector const *);
+static size_t		Vector_count(struct Vector const *vec);
 
 #include "vector.ic"
 

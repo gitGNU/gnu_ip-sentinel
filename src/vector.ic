@@ -28,8 +28,26 @@ Vector_end(struct Vector *vec)
   return (char *)(vec->data) + (vec->count * vec->elem_size);
 }
 
+inline void const *
+Vector_begin_const(struct Vector const *vec)
+{
+  return vec->data;
+}
+
+inline void const *
+Vector_end_const(struct Vector const *vec)
+{
+  return (char *)(vec->data) + (vec->count * vec->elem_size);
+}
+
 inline size_t
-Vector_count(struct Vector *vec)
+Vector_count(struct Vector const *vec)
 {
   return vec->count;
+}
+
+static void const *
+Vector_search_const(struct Vector const *vec, void const *key, int (*compar)(const void *, const void *))
+{
+  return Vector_search((struct Vector *)(vec), key, compar);
 }
