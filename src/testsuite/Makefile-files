@@ -21,8 +21,8 @@ check_LIBRARIES			=  libenscsentinel.a
 libenscsentinel_a_SOURCES	=  $(lib_SRCS)
 libenscsentinel_a_CPPFLAGS	=  -DENSC_TESTSUITE
 
-check_PROGRAMS			=  blacklist-parser blacklist-check		\
-				   prioqueue-check simulate
+check_PROGRAMS +=		blacklist-parser blacklist-check		\
+				prioqueue-check simulate
 
 check_SCRIPTS			=  testsuite/blacklist-check1.sh \
                                    testsuite/prioqueue-check1.sh \
@@ -30,11 +30,11 @@ check_SCRIPTS			=  testsuite/blacklist-check1.sh \
                                    testsuite/prioqueue-check3.sh
 
 blacklist_parser_SOURCES	=  testsuite/blacklist-parser.c
-blacklist_parser_LDADD		=  libenscsentinel.a
+blacklist_parser_LDADD		=  libenscsentinel.a libensc_vector.a
 blacklist_parser_CPPFLAGS	=  -DENSC_TESTSUITE
 
 blacklist_check_SOURCES		=  testsuite/blacklist-check.c
-blacklist_check_LDADD		=  libenscsentinel.a
+blacklist_check_LDADD		=  libenscsentinel.a libensc_vector.a
 blacklist_check_CPPFLAGS	=  -DENSC_TESTSUITE
 
 prioqueue_check_SOURCES		=  testsuite/prioqueue-check.c
@@ -42,7 +42,7 @@ prioqueue_check_LDADD		=  libenscsentinel.a
 prioqueue_check_CPPFLAGS	=  -DENSC_TESTSUITE
 
 simulate_SOURCES		=  testsuite/simulate.c
-simulate_LDADD			=  libenscsentinel.a
+simulate_LDADD			=  libenscsentinel.a libensc_vector.a
 simulate_CPPFLAGS		=  -DENSC_TESTSUITE
 
 tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
@@ -106,7 +106,7 @@ generated_SCRPTS		=  testsuite/blacklist-check1.sh		\
 				   testsuite/simulate-R-S.sh
 
 
-TESTS				=  $(tests_SCRPTS) $(generated_SCRPTS)
+TESTS +=			$(tests_SCRPTS) $(generated_SCRPTS)
 
 testsuite_FILES			=  $(tests_SCRPTS) $(tests_DAT) $(tests_XTRA)
 
