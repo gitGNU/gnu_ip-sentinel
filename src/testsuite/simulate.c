@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 
       struct BlackListQuery	query_src = {
 	.ip  = (struct in_addr const *)arp->arp_spa,
-	.mac = &rq.request.arp_sha,
+	.mac = (struct ether_addr const *)&rq.request.arp_sha,
       };
       
       switch (state) {
