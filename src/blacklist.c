@@ -42,7 +42,7 @@ typedef enum {blUNDECIDED, blIGNORE, blSET, blRAND}	BlackListStatus;
 struct AtMac
 {
     struct ether_addr				mac;
-    enum {amNONE, amPOSITIVE, amNEGATIVE }	status;
+    enum {amNONE, amNEGATIVE, amPOSITIVE }	status;
 };
 
 struct BaseData
@@ -86,9 +86,9 @@ IPData_searchCompare(void const *lhs_v, void const *rhs_v)
   struct IPData const *		rhs = rhs_v;
   assert(lhs!=0 && rhs!=0);
 
-  if      (lhs->s_addr < rhs->v.ip.s_addr) return -1;
-  else if (lhs->s_addr > rhs->v.ip.s_addr) return +1;
-  else                                     return  0;
+  if      (ntohl(lhs->s_addr) < ntohl(rhs->v.ip.s_addr)) return -1;
+  else if (ntohl(lhs->s_addr) > ntohl(rhs->v.ip.s_addr)) return +1;
+  else                                                   return  0;
 }
 
 static int
