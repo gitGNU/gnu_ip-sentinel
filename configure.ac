@@ -44,6 +44,8 @@ fi
 username=nobody
 configfile=ips.cfg
 
+AC_SUBST(GPG_KEY, "0xFFD316AC53ACA43A!")
+
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
