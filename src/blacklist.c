@@ -96,9 +96,21 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
 {
   struct NetData const *	lhs = lhs_v;
   struct NetData const *	rhs = rhs_v;
+  int				result;
   assert(lhs!=0 && rhs!=0);
   
-  return -getBitCount(lhs->mask.s_addr) + getBitCount(rhs->mask.s_addr);
+  result = -getBitCount(lhs->mask.s_addr) + getBitCount(rhs->mask.s_addr);
+
+#if ENSC_TESTSUITE
+  if      (result!=0) {}
+  else if (ntohl(lhs->mask.s_addr) < ntohl(rhs->mask.s_addr)) result = -1;
+  else if (ntohl(lhs->mask.s_addr) > ntohl(rhs->mask.s_addr)) result = +1;
+  else if (ntohl(lhs->ip.s_addr) < ntohl(rhs->ip.s_addr)) result = -1;
+  else if (ntohl(lhs->ip.s_addr) > ntohl(rhs->ip.s_addr)) result = +1;
+  else result = lhs->status - rhs->status;
+#endif  
+
+  return result;
 }
 
 void
