@@ -1,3 +1,11 @@
+Version 0.4
+===========
+	- logging was enhanced
+	- anti-DOS limits were increased a little bit
+	- FEATURE: it is allowed to specify a MAC for networks
+	- build with RH 5.2 was fixed
+	- a lot of minor cleanups
+
 Version 0.3
 ===========
 	- minor code-cleanups
