@@ -102,11 +102,14 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
   result = -getBitCount(lhs->mask.s_addr) + getBitCount(rhs->mask.s_addr);
 
 #if ENSC_TESTSUITE
+    // When being in testsuite-mode compare the network-data in a more deterministic way. Else,
+    // different bsort() implementations can sort elements in a different order when they compare
+    // equally and the expected output will differ from the actual one.
   if      (result!=0) {}
   else if (ntohl(lhs->mask.s_addr) < ntohl(rhs->mask.s_addr)) result = -1;
   else if (ntohl(lhs->mask.s_addr) > ntohl(rhs->mask.s_addr)) result = +1;
-  else if (ntohl(lhs->ip.s_addr) < ntohl(rhs->ip.s_addr)) result = -1;
-  else if (ntohl(lhs->ip.s_addr) > ntohl(rhs->ip.s_addr)) result = +1;
+  else if (ntohl(lhs->ip.s_addr) < ntohl(rhs->ip.s_addr))     result = -1;
+  else if (ntohl(lhs->ip.s_addr) > ntohl(rhs->ip.s_addr))     result = +1;
   else result = lhs->status - rhs->status;
 #endif  
 
@@ -428,7 +431,8 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
       {
 	time_t			t = time(0);
 
-	res->ether_addr_octet[5] = (rand()%32 + t/30000)%256;
+	res->ether_addr_octet[5]  = (rand()%BLACKLIST_RAND_COUNT +
+				     t/BLACKLIST_RAND_PERIOD)%256;
 	break;
       }
       default		:  assert(false); result = 0; break;
