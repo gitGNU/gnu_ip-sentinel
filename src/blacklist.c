@@ -54,6 +54,7 @@ struct NetData
     struct in_addr	ip;
     struct in_addr	mask;
     BlackListStatus	status;
+    struct ether_addr	mac;
 };
 
 static unsigned int
@@ -229,11 +230,6 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     if (parse_status!=blIGNORE) parse_status = blRAND;
   }
   else {
-    if (has_mask) {
-      writeUInt(2, line_nr);
-      WRITE_MSGSTR(2, ": MAC address given for a net-address\n");
-      return false;
-    }
     for (pos=start; pos<end; ++pos) {
       switch (*pos) {
 	case '#'	:
@@ -267,6 +263,7 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     data->ip     = parse_ip;
     data->mask   = parse_mask;
     data->status = parse_status;
+    data->mac	 = parse_mac;
 
     data->ip.s_addr &= data->mask.s_addr;
   }
@@ -416,7 +413,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
     for (; data!=end_ptr; ++data) {
       if ((ip.s_addr & data->mask.s_addr) == data->ip.s_addr) {
 	status = data->status;
-	*res   = DEFAULT_MAC;
+	*res   = data->mac;
 	result = res;
 	break;
       }
@@ -475,6 +472,8 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->net_list);
 	 i!=Vector_end(&lst->net_list); ++i) {
+      char *		aux = ether_ntoa(&i->mac);
+
       switch (i->status) {
 	case blUNDECIDED	:  write(fd, "?", 1); break;
 	case blIGNORE		:  write(fd, "!", 1); break;
@@ -486,6 +485,8 @@ BlackList_print(BlackList *lst, int fd)
       writeIP(fd, i->ip);
       WRITE_MSGSTR(fd, "/");
       writeIP(fd, i->mask);
+      WRITE_MSGSTR(fd, "\t\t");
+      WRITE_MSG(fd, aux);
       WRITE_MSGSTR(fd, "\n");
     }
   }
