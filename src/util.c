@@ -64,22 +64,41 @@ writeMsgTimestamp(int fd)
   writeUInt(fd, static_cast(unsigned int)(tv.tv_usec));
 }
 
+inline static void *
+fillUIntInternal(char *buf, char *end_ptr, unsigned int val)
+{
+  do {
+      /*@-strictops@*/
+    *end_ptr-- = '0' + static_cast(char)(val%10);
+      /*@=strictops@*/
+    val   /= 10;
+  } while (val!=0 && end_ptr>=buf);
+
+  return end_ptr+1;
+}
+
+size_t
+fillUInt(char *dest, unsigned int val)
+{
+  char			buffer[32];
+  register char         *ptr = &buffer[sizeof(buffer) - 1];
+  size_t		count;
+
+  ptr = fillUIntInternal(buffer, ptr, val);
+
+  count = (buffer+sizeof(buffer))-ptr;
+  memcpy(dest, ptr, count);
+
+  return count;
+}
+
 void
 writeUInt(int fd, unsigned int val)
 {
-  char                  buffer[32];
+  char			buffer[32];
   register char         *ptr = &buffer[sizeof(buffer) - 1];
 
-  do {
-      /*@-strictops@*/
-    *ptr-- = '0' + static_cast(char)(val%10);
-      /*@=strictops@*/
-    val   /= 10;
-  } while (val!=0);
-
-  ++ptr;
-  assertDefined(ptr);
-  assert(ptr<=&buffer[sizeof(buffer)]);
+  ptr = fillUIntInternal(buffer, ptr, val);
 
     /*@-strictops@*/
   (void)write(fd, ptr, &buffer[sizeof(buffer)] - ptr);
