@@ -102,16 +102,16 @@ PriorityQueue_free(struct PriorityQueue *q)
 static void
 PriorityQueue_heapify(struct PriorityQueue *q, size_t pos)
 {
-  assert(q!=0);
-
   size_t		l = left(pos);
   size_t		r = right(pos);
   size_t		largest;
 
   void * const		ptr = q->data;
-  size_t		c = q->count;
-  size_t		e = q->elem_size;
+  size_t		c   = q->count;
+  size_t		e   = q->elem_size;
 
+  assert(q!=0);
+  
   if (l<c && (*q->cmp_func)(addr(ptr, l, e), addr(ptr, r, e))>0)
     largest = l;
   else
@@ -141,7 +141,6 @@ PriorityQueue_extract(struct PriorityQueue *q)
   --q->count;
   if (q->count>0) {
     size_t		e    = q->elem_size;
-    void		*aux = addr(q->data, q->count+1, e);
 
     memcpy(q->data, addr(q->data, q->count, e), e);
     PriorityQueue_heapify(q, 0);
@@ -216,11 +215,11 @@ PriorityQueue_print(struct PriorityQueue const *q,
 		    int fd,
 		    void (*func)(int fd, void const*))
 {
-  assert(q!=0);
-  assert(func!=0);
-  
   char		*delim = "";
   int		i;
+  
+  assert(q!=0);
+  assert(func!=0);
   
   WRITE_MSG(fd, "[");
   for (i=0; i<q->count; ++i) {
