@@ -74,6 +74,8 @@ Vector_sort(struct Vector *vec, int (*compare)(const void *, const void *))
   qsort(vec->data, vec->count, vec->elem_size, compare);
 }
 
+  // TODO: do not iterate from begin to end but in the reverse direction. This should be more
+  // effective.
 void
 Vector_unique(struct Vector *vec, int (*compare)(const void *, const void *))
 {
