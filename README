@@ -12,10 +12,10 @@ the device/host will not be used for a certain time, another host takes
 its IP and the original device will be turned on again.
 
 DHCP seems to remove the reasons for static IPs. But because there
-are some cases which require fixed IPs (e.g. IP-bounded licences,
-elder applications which do not understand DNS), you will see people
-choosing arbitrary IPs when the part-time admin is not available for
-a short time (e.g. lunch break).
+are some cases which require fixed IPs (e.g. IP-tied licences,
+elder applications which do not understand DNS), you will see
+people choosing arbitrary IPs when the part-time admin is not
+available for a short time (e.g. lunch break).
 
 Another example might be an ethernet subnet where people have to pay
 for the usage but can plugin their machines without problems (e.g. when
@@ -163,9 +163,9 @@ EXAMPLES
 
 1. ./ipsentinel -u 42 -g 42 -r /var/lib/ip-sentinel -i x.dat eth0
 
-   Runs with a uid and gid of 42, uses /var/lib/ip-sentinel as a
-   chroot-jail, reads 'x.dat' there and answers on ARP-requests on
-   interface eth0.
+   Runs with an uid and gid of 42, uses /var/lib/ip-sentinel as its
+   chroot-environment, reads 'x.dat' there and gives answers on
+   ARP-requests on interface eth0.
 
 2. A sample 'x.dat' might be:
 
