@@ -21,9 +21,9 @@ function execprog()
 function verify()
 {
     sed -e "${REPLACE_REGEX}" ${outfile_out} |
-	diff -b -c - ${basefile}.out || exit 1
+	$DIFF - ${basefile}.out || exit 1
     sed -e "${REPLACE_REGEX}" ${outfile_fd3} |
-	diff -b -c - ${basefile}.fd3 || exit 1
+	$DIFF - ${basefile}.fd3 || exit 1
 }
 
 LANG=C file ${execfile} | grep -q 'statically linked' || {
