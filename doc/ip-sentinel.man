@@ -19,7 +19,13 @@
 .\" into another language, under the above conditions for modified versions,
 .\" except that this permission notice may be stated in a translation
 .\" approved by the Free Software Foundation
-.\"  
+.\"
+..
+.de TQ
+.br
+.ns
+.TP \\$1
+..
 .TH ip-sentinel 8 "Aug 28 2003" "@PACKAGE@ 0.7"
 .\"
 .\" ====================
@@ -156,6 +162,21 @@ which means that the address from the ARP-header will be used. When
 not using the \fIFROM\fR or \fIBOTH\fR directions, the assigned value
 will not have any effect. The default is \fILOCAL\fR.
 .TP
+.BR \-\-poison
+When an intruder sends a request \fBfrom\fR a registered ip address
+and this option is set, ip-sentinel will send ARP replies which are
+poisoning this ip. When the
+.I @!srcmac
+syntax is used for the questionable ip, the
+.I srcmac
+is used as the is-at mac. Else, the mac specified by the
+.I --mac
+option is used.
+
+This option takes an affect only when
+.I --destination BOTH \fRor\fI FROM
+is specified.
+.TP
 .BR \-\-help | \-h
 Prints help message and exits.
 .TP
@@ -191,8 +212,24 @@ for the same IP on different ports (this one of the bad-host and this
 one of the ip-sentinel host).
 
 Examples are: "192.168.42.23  11:22:33:44:55:66" or "10.0.0.0".
+.\"
+.TP
+.IR  ip @ [ ! ]srcmac\  [ mac ]
+Similarly to above, but when receiving ARP-requests, the entire
+sender-address (IP and MAC) will be compared against the \fIip\fR and
+\fIsrcmac\fR values. This setting affects packets \fBfrom\fR intruders
+only; ip-sentinel will not generate replies when \fIip\fR is
+requested.
+
+When the \fIsrcmac\fR is negated with "\fI!\fR", only addresses from
+this ip which are \fBnot\fR having this mac will be matching.
+
+Examples are: "10.0.0.1@0:1:2:3:4:5" or "10.0.0.2@!a:b:c:d:e:f".
+.\"
 .TP
 .IB net / mask\ \fR[ \fImac\fR]
+.TQ
+.IB net / mask @ [ ! ]srcmac\  \fR[ mac \fR]
 Specifies that IPs of an entiry network shall be blocked. See above
 for the meaning of "blocked". It is possible to specify a MAC address;
 else a random one will be generated.
@@ -200,6 +237,8 @@ else a random one will be generated.
 Examples are: "169.0.0.0/8", "192.168.8.15/255.255.65.31" or "192.168.23.42/26 a:b:c:d:e:f".
 .TP
 .BI ! ip
+.TQ
+.BI ! ip @ [ ! ]srcmac
 The given IP address \fIip\fR will be ignored. By default, any not
 specified address will be ignored but when having blocked netmasks it
 may be usefully to allow certain IPs.
@@ -207,6 +246,8 @@ may be usefully to allow certain IPs.
 An example is: "!192.168.23.42"
 .TP
 .BI ! net / mask
+.TQ
+.BI ! net / mask @ [ ! ]srcmac
 Tells that IPs of the given network shall be ignored.
 
 Examples are: "!192.168.1.0/255.255.255.0" or "!0.0.0.0/0" (the
@@ -321,10 +362,25 @@ should be expressed with netmasks.
 192.168.0.1 a:b:c:d:e:f   ## use a special mac for 192.168.0.1
 .RS 0
 192.168.0.2 802.1d        ## and 01:80:C2:00:00:00 for 192.168.0.2
+.RS 0
+10.0.0.1@a:a:a:a:a:a
+.RS 0
+10.0.0.2@!1:1:1:1:1:1
 
 This setup will not send ARP-replies for the IPs 192.168.0.{3-255} but
 when a host tries to use e.g. 169.254.145.213, ip-sentinel will tell
 that this IP has a MAC of "de:ad:be:ef:00:XX".
+
+When an intruder is at "10.0.0.1" and uses the mac "a:a:a:a:a:a:", a
+faked reply will be generated. Users at the same ip but another mac
+will be ignored.
+
+In opposite, users with ip "10.0.0.2" and mac "1:1:1:1:1:1" will be
+ignored but intruders with other macs (e.g. "2:2:2:2:2:2") are getting
+faked replies. When
+.I \-\-poision
+is used, ip-sentinel will generate a "10.0.0.2 is at 1:1:1:1:1:1"
+arp-reply to a broad address.
 .\"
 .\" ====================
 .\"
