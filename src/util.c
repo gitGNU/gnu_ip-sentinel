@@ -23,6 +23,7 @@
 #include "util.h"
 #include "wrappers.h"
 #include "ip-sentinel.h"
+#include "parameters.h"
 
 #include <unistd.h>
 #include <assert.h>
@@ -34,7 +35,7 @@
 #include <sys/ioctl.h>
 #include <time.h>
 
-static struct ether_addr const	DEFAULT_MAC = {{  0xde, 0xad, 0xbe, 0xef, 0, 0 } };
+static struct ether_addr const	DEFAULT_MAC = { RANDOM_MAC_BASE };
 
 void
 writeMsgTimestamp(int fd)
@@ -142,9 +143,10 @@ xether_aton_r(char const *asc, struct ether_addr *addr)
 void
 Util_setRandomMac(struct ether_addr *res)
 {
-  time_t		t = time(0);
+  time_t		t   = time(0);
+  size_t const		idx = RANDOM_MAC_OCTET;
 
-  *res                      = DEFAULT_MAC;
-  res->ether_addr_octet[5]  = (rand()%BLACKLIST_RAND_COUNT +
-			       t/BLACKLIST_RAND_PERIOD)%256;
+  *res                       = DEFAULT_MAC;
+  res->ether_addr_octet[idx] = (rand()%BLACKLIST_RAND_COUNT +
+				t/BLACKLIST_RAND_PERIOD)%256;
 }
