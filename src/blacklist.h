@@ -19,13 +19,13 @@
 #ifndef H_IPSENTINEL_BLACKLIST_H
 #define H_IPSENTINEL_BLACKLIST_H
 
-#include "vector.h"
+#include "ensc_vector/vector.h"
+#include "compat.h"
 
 #include <netinet/in.h>
 #include <net/ethernet.h>
 #include <time.h>
 #include <stdbool.h>
-#include <compat.h>
 
 struct Arguments;
 
