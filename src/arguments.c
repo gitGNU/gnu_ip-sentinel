@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 #ifndef DEFAULT_IPFILE
-#  define DEFAULT_IPFILE		"ips.cfg"
+#  define DEFAULT_IPFILE		PATH_CONFIGFILE
 #endif
 
 #ifndef DEFAULT_PIDFILE
