@@ -19,7 +19,7 @@
 #ifndef H_IPSENTINEL_ANTIDOS_H
 #define H_IPSENTINEL_ANTIDOS_H
 
-#include "vector.h"
+#include "ensc_vector/vector.h"
 
 #include <stdbool.h>
 #include <netinet/in.h>
