@@ -21,6 +21,7 @@
 #endif
 
 #include "blacklist.h"
+#include "arguments.h"
 #include "compat.h"
 
 #include <stdbool.h>
@@ -40,6 +41,10 @@ int main(int argc, char *argv[])
   BlackList		lst;
   FILE *		ip_file;
   FILE *		result_file;
+  struct Arguments	args = {
+    .mac_type  = mcRANDOM,
+    .ipfile    = argv[2]
+  };
 
   if (argc!=4) {
     write(2, "Wrong argument-count; aborting...\n", 33);
@@ -60,7 +65,7 @@ int main(int argc, char *argv[])
 
   
   
-  BlackList_init(&lst, argv[2]);
+  BlackList_init(&lst, &args);
   BlackList_softUpdate(&lst);
   BlackList_print(&lst, 3);
   write(1, "\n", 1);

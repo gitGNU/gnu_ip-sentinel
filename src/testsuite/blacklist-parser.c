@@ -21,6 +21,7 @@
 #endif
 
 #include "blacklist.h"
+#include "arguments.h"
 #include <signal.h>
 
 volatile sig_atomic_t		child_count;
@@ -28,11 +29,15 @@ volatile sig_atomic_t		child_count;
 
 int main(int argc, char *argv[])
 {
+  struct Arguments	args = {
+    .mac_type  = mcRANDOM,
+    .ipfile    = argv[1]
+  };
   BlackList		lst;
 
   if (argc!=2) return EXIT_FAILURE;
   
-  BlackList_init(&lst, argv[1]);
+  BlackList_init(&lst, &args);
   BlackList_softUpdate(&lst);
   BlackList_print(&lst,1);
 
