@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-AC_INIT(ip-sentinel, 0.9, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
+AC_INIT(ip-sentinel, 0.9.1, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
 AC_CONFIG_SRCDIR([src/antidos.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -89,6 +89,7 @@ ENSC_DIET_CHECK_IN_ADDR_T
 # Checks for library functions.
 ENSC_DIET_CHECK_ETHER
 
+AH_BOTTOM([#include "compat.h"])
 AC_CONFIG_FILES([Makefile
                  src/Makefile ip-sentinel.spec])
 AC_OUTPUT
