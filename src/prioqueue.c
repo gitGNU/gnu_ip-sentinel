@@ -25,7 +25,7 @@
 #include "util.h"
 #include <assert.h>
 
-inline static size_t
+inline static size_t ALWAYSINLINE
 powify(size_t val)
 {
   int	i;
@@ -85,6 +85,7 @@ PriorityQueue_init(struct PriorityQueue *q,
   q->cmp_func  = cmp_func;
 }
 
+#ifdef ENSC_TESTSUITE
 void
 PriorityQueue_free(struct PriorityQueue *q)
 {
@@ -98,6 +99,7 @@ PriorityQueue_free(struct PriorityQueue *q)
   q->data      = (void *)(0xdeadbeef);
 #endif
 }
+#endif
 
 static void
 PriorityQueue_heapify(struct PriorityQueue *q, size_t pos)
@@ -148,7 +150,7 @@ PriorityQueue_extract(struct PriorityQueue *q)
 }
 
 
-static void
+static void ALWAYSINLINE
 PriorityQueue_insertInternal(struct PriorityQueue *q, void const *key)
 {
   void * const		ptr = q->data;

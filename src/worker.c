@@ -67,11 +67,13 @@ Worker_init(struct Worker *worker, int sock, int if_idx)
   }
 }
 
+#ifdef ENSC_TESTSUITE
 void
 Worker_free(struct Worker *worker)
 {
   close(worker->fd);
 }
+#endif
 
 void
 Worker_sendJob(struct Worker *worker, struct RequestInfo const *request)
@@ -122,7 +124,7 @@ Worker_executeJob(struct Worker const *worker, struct ScheduleInfo const *job)
   error_count = 0;
 }
 
-static void
+static void ALWAYSINLINE
 Worker_fillPacket(struct Worker const *worker,
 		  struct ScheduleInfo *job,
 		  struct RequestInfo const *rq)
@@ -222,7 +224,7 @@ Worker_printJob(struct RequestInfo const *rq)
 #endif
 }
 
-static void
+static void ALWAYSINLINE
 Worker_scheduleNewJob(struct Worker *worker, struct PriorityQueue *queue, time_t now)
 {
   struct RequestInfo	request;
