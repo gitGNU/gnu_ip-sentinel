@@ -1,15 +1,17 @@
 Version 0.3
 ===========
-	- Minor code-cleanups
-	- Documented and parameterized certain mechanism (anti-DOS,
-	  vector-resizing, sliding random MACs); see src/parameters.h for
-	  details
-	- BUGFIX: fixed broken signal-handling with dietlibc (dietlibc sets
-	  SIG_DFL handler when entering a handler and -- in opposite to
+	- minor code-cleanups
+	- certain mechanism (anti-DOS, vector-resizing, sliding random
+	  MACs) were documented and parameterized ; see src/parameters.h
+	  for details
+	- BUGFIX: broken signal-handling with dietlibc was fixed (dietlibc
+	  sets SIG_DFL handler when entering a handler and -- in opposite to
 	  glibc-2.3.1 -- does not restore this value to the handler set with
 	  signal())
-	- BUGFIX: fixed stupid typo in vector-resize code which caused
-	  excessive memory-consumption
+	- BUGFIX: stupid typo in vector-resize code which caused excessive
+	  memory-consumption was fixed
+	- testsuite was modified to give more determined results with
+	  different bsort() implementations
 
 Version 0.2
 ===========
