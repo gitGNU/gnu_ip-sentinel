@@ -1,6 +1,6 @@
 // $Id$    --*- c++ -*--
 
-// Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+// Copyright (C) 2002,2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ struct Vector
 };
 
 void	Vector_init(struct Vector *, size_t elem_size);
+void	Vector_free(struct Vector *);
 void *	Vector_search(struct Vector *, void const *key, int (*compar)(const void *, const void *));
 void	Vector_sort(struct Vector *, int (*compar)(const void *, const void *));
 void *	Vector_pushback(struct Vector *);

@@ -1,6 +1,6 @@
 // $Id$    --*- c++ -*--
 
-// Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+// Copyright (C) 2002,2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -38,6 +38,20 @@ Vector_init(struct Vector *vec, size_t elem_size)
   vec->data      = 0;
   vec->count     = 0;
   vec->allocated = 0;
+}
+
+void
+Vector_free(struct Vector *vec)
+{
+  assert(vec!=0);
+  free(vec->data);
+
+#ifndef NDEBUG  
+  vec->count     = 0xdeadbeef;
+  vec->allocated = 0xdeadbeef;
+  vec->elem_size = 0xdeadbeef;
+  vec->data      = (void *)(0xdeadbeef);
+#endif
 }
 
 void *
