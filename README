@@ -1,4 +1,4 @@
-Release notes for IP Sentinel, version 0.4
+Release notes for IP Sentinel, version 0.7
 ==========================================
 
 In a perfect environment there are managed switches with one host per
@@ -65,6 +65,10 @@ this query, it is highly probable that 'M' will refuse to bring-up its
 network.
 
 
+Beside this operation-mode, ip-sentinel can answer arp-requests
+originated by an intruder also.
+
+
 
 INSTALLATION
 ------------
@@ -110,7 +114,19 @@ remote NIS, such passwd-lookups are failing. Then the needed parameters
 ip-sentinel(8) for details.
 
 The contrib/-directory in the source-tarball contains an initscript
-suitable for Red Hat Linux.
+suitable for Red Hat Linux and support for 'minit'.
+
+
+To test some aspects of the software, it is shipped with an extensive
+test-suite whose tests will be executed with 'make check'.  The
+'src/simulate' program which is generated in this step might be useful
+to test real-world situations since it prints the generated
+ethernet/arp headers in a human-readable format.  This tool is called
+with the same arguments like the final 'ip-sentinel' and fed on its
+stdin with 'A-ip A-mac B-ip B-mac' tuples:
+
+| $ echo '192.168.0.1  11:11:11:11:11:11  192.168.0.10 22:22:22:22:22:22' | \
+|    src/simulate -i src/testsuite/data/simulate.cfg eth0 10>&1
 
 
 
@@ -121,6 +137,7 @@ configfile (default: <chrootdir>/ips.cfg) by the following two ways:
 
 - single IPs (e.g. 192.168.0.1)
 - netmasks (e.g. 192.168.0.1/255.255.255.1 or 10.0.0.0/8)
+- ranges (e.g. 192.168.0.{1-5})
 
 When adding an exclamation mark ('!') in front of an IP or network
 specification, this IP/net will be removed from a less-specified
@@ -185,7 +202,6 @@ EXAMPLES
    result.
 
 
-
 TODO
 ----
-- do not fork seperate processes
+- validate the test-results
