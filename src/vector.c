@@ -40,6 +40,7 @@ Vector_init(struct Vector *vec, size_t elem_size)
   vec->allocated = 0;
 }
 
+#if ENSC_TESTSUITE
 void
 Vector_free(struct Vector *vec)
 {
@@ -53,6 +54,7 @@ Vector_free(struct Vector *vec)
   vec->data      = (void *)(0xdeadbeef);
 #endif
 }
+#endif
 
 void *
 Vector_search(struct Vector *vec, void const *key,

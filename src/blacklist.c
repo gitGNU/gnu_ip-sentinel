@@ -131,6 +131,7 @@ BlackList_init(BlackList *lst, char const *filename)
   BlackList_update(lst);
 }
 
+#if ENSC_TESTSUITE
 void
 BlackList_free(BlackList *lst)
 {
@@ -144,7 +145,7 @@ BlackList_free(BlackList *lst)
   lst->filename = (void *)(0xdeadbeef);
 #endif
 }
-
+#endif
 
 static bool
 BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr)
