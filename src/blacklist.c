@@ -92,6 +92,18 @@ IPData_sortCompare(void const *lhs_v, void const *rhs_v)
   return IPData_searchCompare(&lhs->ip, rhs_v);
 }
 
+static int UNUSED
+IPData_uniqueCompare(void const *lhs_v, void const *rhs_v)
+{
+  struct IPData const *		lhs = lhs_v;
+  struct IPData const *		rhs = rhs_v;
+  assert(lhs!=0 && rhs!=0);
+
+  if (lhs->status!=rhs->status) return 1;
+  else return IPData_sortCompare(lhs_v, rhs_v);
+}
+
+
 static int
 NetData_sortCompare(void const *lhs_v, void const *rhs_v)
 {
@@ -115,6 +127,18 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
 #endif  
 
   return result;
+}
+
+static int UNUSED
+NetData_uniqueCompare(void const *lhs_v, void const *rhs_v)
+{
+  struct NetData const *	lhs = lhs_v;
+  struct NetData const *	rhs = rhs_v;
+  assert(lhs!=0 && rhs!=0);
+
+  if      (lhs->status!=rhs->status)       return 1;
+  else if (lhs->ip.s_addr!=rhs->ip.s_addr) return 1;
+  else return NetData_sortCompare(lhs_v, rhs_v);
 }
 
 void
@@ -295,6 +319,230 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
 }
 
 static bool
+BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_nr);
+
+
+static bool
+BlackList_iterateList(BlackList *lst,
+		      char *list_start,    char const *list_end,
+		      char *prefix_start,  char *prefix_end,
+		      char *postfix_start, size_t postfix_len,
+		      size_t line_nr)
+{
+  char		 *ptr;
+
+  for (ptr=list_start; ptr<=list_end; ++ptr) {
+    if (*ptr==',' || ptr==list_end) {
+      size_t	len = ptr-list_start;
+      
+      memcpy(prefix_end,     list_start,    len);
+      memcpy(prefix_end+len, postfix_start, postfix_len);
+
+      len            += postfix_len;
+      prefix_end[len] = '\0';
+
+      if (!BlackList_expandLine(lst, prefix_start, prefix_end+len, line_nr))
+	return false;
+
+      list_start = ptr+1;
+    }
+  }
+
+  return true;
+}
+
+static bool
+BlackList_iterateRange(BlackList *lst,
+		       char *list_start,    char const *list_end,
+		       char *prefix_start,  char *prefix_end,
+		       char *postfix_start, size_t postfix_len,
+		       size_t line_nr)
+{
+  int		start, end;
+  char		*err_ptr;
+
+    // strtol() stays in valid memory since it returns at least at *list_end=='}'
+  start = strtol(list_start, &err_ptr, 10);
+
+  if (err_ptr==0 || *err_ptr!='-') {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": unexpected error while parsing a range\n");
+    return false;
+  }
+    
+  end = strtol(err_ptr+1, &err_ptr, 10);
+  if (err_ptr==0 || *err_ptr!='}') {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": range not terminated correctly\n");
+    return false;
+  }
+
+  if (start<0 || end<0) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": negative values are not allowed in ranges\n");
+    return false;
+  }
+
+  if (start>end) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": descending ranges are not allowed\n");
+    return false;
+  }
+
+  if (err_ptr>list_end) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": unexpected error while parsing range\n");
+    return false;
+  }
+
+  for (; start<=end; ++start) {
+    size_t	len = fillUInt(prefix_end, start);
+    
+    memcpy(prefix_end+len, postfix_start, postfix_len);
+
+    len            += postfix_len;
+    prefix_end[len] = '\0';
+
+    if (!BlackList_expandLine(lst, prefix_start, prefix_end+len, line_nr))
+      return false;
+  }
+
+  return true;
+}
+
+static bool
+BlackList_expandLine(BlackList *lst, char *start, char const *end, size_t line_nr)
+{
+  enum {rgUNDECIDED, rgLIST, rgRANGE}	range_type = rgUNDECIDED;
+  char					*buf, *ptr, *i;
+  char					*range_start=0, *range_end=0;
+  bool					parsed_line = false;
+
+#if 0  
+  WRITE_MSGSTR(1, "Expanding line '");
+  write(1, start, end-start);
+  WRITE_MSGSTR(1, "'\n");
+#endif  
+  
+    // This works since the expanded lines are shorter than the original line
+  buf = alloca(end-start);
+  ptr = buf;
+
+    // HACK-ALERT!! abort on comments
+  for (i=start; i<end && *i!='#' && !parsed_line; ++i) {
+    switch (*i) {
+      case '{'	:
+	if (range_start!=0) {
+	  writeUInt(2, line_nr);
+	  WRITE_MSGSTR(2, ": nested ranges are not allowed\n");
+	  return false;
+	}
+	range_start = i;
+	range_type  = rgUNDECIDED;
+	break;
+
+      case '}'	:
+	if (range_start==0) {
+	  writeUInt(2, line_nr);
+	  WRITE_MSGSTR(2, ": unexpected end of range\n");
+	  return false;
+	}
+	range_end  =i;
+	break;
+
+      case '-'	:
+      case ','	:
+      {
+	bool	is_mismatch = false;
+
+	switch (*i) {
+	  case '-'	:
+	    is_mismatch=(range_type!=rgUNDECIDED && range_type!=rgRANGE);
+	    range_type = rgRANGE;
+	    break;
+	
+	  case ','	:
+	    is_mismatch=(range_type!=rgUNDECIDED && range_type!=rgLIST);
+	    range_type = rgLIST;
+	    break;
+	    
+	  default	:
+	    assert(false);
+	}
+
+	if (is_mismatch) {
+	  writeUInt(2, line_nr);
+	  WRITE_MSGSTR(2, ": mixed range-types not allowed\n");
+	  return false;
+	}
+	
+	break;
+      }
+
+      default	:
+	if (range_start!=0 && (*i<'0' || *i>'9')) {
+	  writeUInt(2, line_nr);
+	  WRITE_MSGSTR(2, ": non-digits not allowed as range-marks\n");
+	  return false;
+	}
+	break;
+    }
+
+    if (range_end!=0) {
+      assert(range_start!=0 && range_start<range_end);
+      
+      if (range_type==rgUNDECIDED) {
+      }
+
+	// copy string from start till the '{' (exclusive)
+      memcpy(buf, start, range_start-start);
+
+      switch (range_type) {
+	case rgUNDECIDED	:
+	  writeUInt(2, line_nr);
+	  WRITE_MSGSTR(2, ": can not parse range\n");
+	  return false;
+
+	case rgLIST		:
+	    // 'end-range_end-1 >= 0' holds since 'range_end' points to the '}' and 'end' to the
+	    // final '\0'
+	  if (!BlackList_iterateList(lst, range_start+1, range_end,
+				     buf, buf + (range_start-start),
+				     range_end+1, end-range_end-1, line_nr))
+	    return false;
+	  break;
+
+	case rgRANGE		:
+	  if (!BlackList_iterateRange(lst, range_start+1, range_end,
+				      buf, buf + (range_start-start),
+				      range_end+1, end-range_end-1, line_nr))
+	    return false;
+	  break;
+
+	default			:
+	  assert(false);
+	  break;
+      }
+
+      parsed_line = true;
+      range_start = 0;
+      range_end   = 0;
+    }
+  }
+
+  if (range_start!=0) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": range not closed\n");
+    return false;
+  }
+
+  if (!parsed_line)
+    BlackList_parseLine(lst, start, end, line_nr);
+
+  return true;
+}
+
+static bool
 BlackList_updateInternal(BlackList *lst, int fd)
 {
   size_t	line_nr     = 1;
@@ -335,7 +583,7 @@ BlackList_updateInternal(BlackList *lst, int fd)
 	break;
       }
       *pos = '\0';
-      BlackList_parseLine(lst, line_start, pos, line_nr);
+      BlackList_expandLine(lst, line_start, pos, line_nr);
       line_start = pos+1;
       ++line_nr;
     }
@@ -343,6 +591,10 @@ BlackList_updateInternal(BlackList *lst, int fd)
 
   Vector_sort(&lst->ip_list,  IPData_sortCompare);
   Vector_sort(&lst->net_list, NetData_sortCompare);
+#if !defined(ENSC_TESTSUITE)
+  Vector_unique(&lst->ip_list,  IPData_uniqueCompare);
+  Vector_unique(&lst->net_list, NetData_uniqueCompare);
+#endif
 
   return true;
 }
