@@ -257,5 +257,13 @@ Epipe(int modus[2])
   FatalErrnoError(res==-1, 1, "pipe()");
 }
 
+inline static int
+Efcntl_l(int fd, int cmd, long arg)
+{
+  register int		res = fcntl(fd, cmd, arg);
+  FatalErrnoError(res==-1, 1, "fcntl()");
+  return res;
+}
+
 
 #endif	//  H_IPSENTINEL_WRAPPERS_H
