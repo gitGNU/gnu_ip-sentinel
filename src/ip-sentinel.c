@@ -28,6 +28,7 @@
 #include "antidos.h"
 #include "arpmessage.h"
 #include "compat.h"
+#include "ip-sentinel.h"
 
 #include <assert.h>
 #include <unistd.h>
@@ -311,7 +312,6 @@ run(int sock, int if_idx, char const *filename)
     int				arp_count;
     struct ether_addr const	*mac;
     struct ether_addr		mac_buffer;
-    bool			do_omit;
     
     AntiDOS_update(&anti_dos);
     size = TEMP_FAILURE_RETRY(recvfrom(sock, buffer, sizeof buffer, 0,
@@ -329,7 +329,7 @@ run(int sock, int if_idx, char const *filename)
 
     error_count = 0;
 
-    if (ntohs(addr.sll_protocol)!=ETHERTYPE_ARP)   continue;
+    if (ntohs(addr.sll_protocol)!=ETHERTYPE_ARP)      continue;
     if (ntohs(msg->data.ea_hdr.ar_op)!=ARPOP_REQUEST) continue;
 
     if (!do_reload) BlackList_softUpdate(&cfg);
@@ -355,10 +355,8 @@ run(int sock, int if_idx, char const *filename)
     }
 
     arp_count = AntiDOS_registerIP(&anti_dos, *src_ip);
-    do_omit   = ((arp_count>10 && arp_count<=50 && (rand()%40>=(50-arp_count))) ||
-		 (arp_count>50));
 
-    if (do_omit) {
+    if (isDOS(arp_count)) {
       writeMsgTimestamp(2);
       WRITE_MSGSTR(2, ": Too much requests from ");
       writeIP     (2, *src_ip);

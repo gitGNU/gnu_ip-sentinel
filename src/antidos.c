@@ -26,12 +26,13 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <time.h>
+#include <sys/param.h>
 
 struct Data
 {
     struct in_addr	ip;
     time_t		access_time;
-    int			counter;
+    unsigned int	counter;
 };
 
 static int
@@ -83,14 +84,18 @@ AntiDOS_registerIP(AntiDOS *dos, struct in_addr const ip)
 
     data->access_time = t;
 
-    if (delta>10) {
+    if (delta>ANTIDOS_TIME_BASE) {
       data->counter = 1;
       dos->min_time = 0;
     }
-    else if (data->counter <= 1000)
-      data->counter += 1 - (data->counter * delta/10);
+    else if (data->counter <= ANTIDOS_COUNT_MAX) {
+	// data->counter can not become negative by this operation because
+	// delta/ANTIDOS_TIME_BASE<=1
+      data->counter -= data->counter*delta/ANTIDOS_TIME_BASE;
+      data->counter += 1;
+    }
     else if (delta>1)
-      data->counter  = 1000;
+      data->counter  = ANTIDOS_COUNT_MAX;
   }
 
   return data->counter;
@@ -102,17 +107,18 @@ AntiDOS_update(AntiDOS *dos)
   time_t		t = time(0);
   assert(dos!=0);
   
-  if (t-dos->min_time > 10) {
+  if (t-dos->min_time > ANTIDOS_TIME_BASE) {
     bool		was_changed = false;
     struct Data		*i;
     
     dos->min_time = t;
     for (i = Vector_begin(&dos->data); i!=Vector_end(&dos->data); ++i) {
-      if (t - i->access_time>10) {
-	i->ip.s_addr = 0xFFFFFFFF;
-	was_changed  = true;
+      if (t - i->access_time>ANTIDOS_TIME_BASE) {
+	i->ip.s_addr  = 0xFFFFFFFF;
+	was_changed   = true;
       }
-      else if (dos->min_time > i->access_time) dos->min_time = i->access_time;
+      else
+	dos->min_time = MIN(dos->min_time, i->access_time);
     }
 
     if (was_changed) {
@@ -132,5 +138,5 @@ AntiDOS_update(AntiDOS *dos)
 bool
 AntiDOS_isOversized(AntiDOS *dos)
 {
-  return Vector_count(&dos->data) >= MAX_ANTIDOS_ENTRIES;
+  return Vector_count(&dos->data) >= ANTIDOS_ENTRIES_MAX;
 }
