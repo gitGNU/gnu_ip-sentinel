@@ -24,6 +24,7 @@
 #include "ip-sentinel.h"
 #include "parameters.h"
 #include "util.h"
+#include "arguments.h"
 #include "compat.h"
 
 #include <errno.h>
@@ -142,14 +143,14 @@ NetData_uniqueCompare(void const *lhs_v, void const *rhs_v)
 }
 
 void
-BlackList_init(BlackList *lst, char const *filename)
+BlackList_init(BlackList *lst, struct Arguments const *args)
 {
   assert(lst!=0);
   
   Vector_init(&lst->ip_list,  sizeof(struct IPData));
   Vector_init(&lst->net_list, sizeof(struct NetData));
 
-  lst->filename   = strdup(filename);
+  lst->args_      = args;
   lst->last_mtime = 0;
 
   BlackList_update(lst);
@@ -161,13 +162,8 @@ BlackList_free(BlackList *lst)
 {
   assert(lst!=0);
 
-  free(const_cast(char *)(lst->filename));
   Vector_free(&lst->ip_list);
   Vector_free(&lst->net_list);
-
-#ifndef NDEBUG
-  lst->filename = (void *)(0xdeadbeef);
-#endif
 }
 #endif
 
@@ -177,7 +173,25 @@ do {						\
   WRITE_MSGSTR(2, ": " MSG "\n");		\
   return false;					\
 } while (false)
+
+
+static BlackListStatus
+BlackList_setDefaultMac(BlackList const *lst, struct ether_addr *addr)
+{
+  BlackListStatus	res;
   
+  switch (lst->args_->mac_type) {
+    case mcRANDOM	:  res = blRAND; break;
+    case mcFIXED	:
+      *addr = lst->args_->mac_addr;
+      res   = blSET;
+      break;
+    default		:  assert(false); res = blUNDECIDED; break;
+  }
+
+  return res;
+}
+
 
 static bool
 BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr)
@@ -270,8 +284,8 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
 
     // The MAC
   if (start==end || *start=='#') {
-    parse_mac    = DEFAULT_MAC;
-    if (parse_status!=blIGNORE) parse_status = blRAND;
+    if (parse_status!=blIGNORE)
+      parse_status = BlackList_setDefaultMac(lst, &parse_mac);
   }
   else {
     for (pos=start; pos<end; ++pos) {
@@ -286,15 +300,18 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
 
     if (parse_status==blIGNORE) PARSE_ERRROR("can not both ignore an IP and assign a MAC");
 
-    if (ether_aton_r(start, &parse_mac)==0) {
-      writeUInt(2, line_nr);
-      WRITE_MSGSTR(2, ": invalid MAC '");
-      WRITE_MSG   (2, start);
-      WRITE_MSGSTR(2, "'\n");
-      return false;
-    }
+    if (strcmp(start, "RANDOM")==0) parse_status = blRAND;
+    else {
+      if (xether_aton_r(start, &parse_mac)==0) {
+	writeUInt(2, line_nr);
+	WRITE_MSGSTR(2, ": invalid MAC '");
+	WRITE_MSG   (2, start);
+	WRITE_MSGSTR(2, "'\n");
+	return false;
+      }
 
-    parse_status = blSET;
+      parse_status = blSET;
+    }
   }
 
   if (has_mask) {
@@ -565,7 +582,7 @@ BlackList_softUpdate(BlackList *lst)
   struct stat	status;
   int		fd = -1;
   
-  if (stat(lst->filename, &status)==-1) {
+  if (stat(lst->args_->ipfile, &status)==-1) {
     ++error_count;
     perror("stat()");
   }
@@ -576,7 +593,7 @@ BlackList_softUpdate(BlackList *lst)
     writeUInt(1, child_count);
     WRITE_MSGSTR(1, "\n");
 
-    fd = open(lst->filename, O_RDONLY);
+    fd = open(lst->args_->ipfile, O_RDONLY);
     if (fd==-1) {
       ++error_count;
       perror("open()");
@@ -611,6 +628,16 @@ BlackList_update(BlackList *lst)
 {
   lst->last_mtime = 0;
   BlackList_softUpdate(lst);
+}
+
+static void
+BlackList_setRandomMac(struct ether_addr *res)
+{
+  time_t			t = time(0);
+
+  *res                      = DEFAULT_MAC;
+  res->ether_addr_octet[5]  = (rand()%BLACKLIST_RAND_COUNT +
+			       t/BLACKLIST_RAND_PERIOD)%256;
 }
 
 struct ether_addr const *
@@ -653,14 +680,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
     switch (status) {
       case blIGNORE	:  result = 0;
       case blSET	:  break;
-      case blRAND	:
-      {
-	time_t			t = time(0);
-
-	res->ether_addr_octet[5]  = (rand()%BLACKLIST_RAND_COUNT +
-				     t/BLACKLIST_RAND_PERIOD)%256;
-	break;
-      }
+      case blRAND	:  BlackList_setRandomMac(res); break;
       default		:  assert(false); result = 0; break;
     }
   }
@@ -679,15 +699,17 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->ip_list);
 	 i!=Vector_end(&lst->ip_list); ++i) {
-      char *		aux = ether_ntoa(&i->mac);
+      char *		aux = 0;
       
       switch (i->status) {
-	case blUNDECIDED	:  write(fd, "?", 1); break;
-	case blIGNORE		:  write(fd, "!", 1); break;
-	case blRAND		:
+	case blUNDECIDED	:  write(fd, "?", 1); aux = "FAIL"; break;
+	case blIGNORE		:  write(fd, "!", 1); aux = "";     break;
+	case blRAND		:  aux = "RANDOM";    break;
 	case blSET		:  break;
 	default			:  assert(false);
       }
+
+      if (aux==0) aux = ether_ntoa(&i->mac);
 
       writeIP(fd, i->ip);
       WRITE_MSGSTR(fd, "\t\t");
@@ -701,15 +723,17 @@ BlackList_print(BlackList *lst, int fd)
 
     for (i =Vector_begin(&lst->net_list);
 	 i!=Vector_end(&lst->net_list); ++i) {
-      char *		aux = ether_ntoa(&i->mac);
+      char *		aux = 0;
 
       switch (i->status) {
-	case blUNDECIDED	:  write(fd, "?", 1); break;
-	case blIGNORE		:  write(fd, "!", 1); break;
-	case blRAND		:
+	case blUNDECIDED	:  write(fd, "?", 1); aux = "FAIL"; break;
+	case blIGNORE		:  write(fd, "!", 1); aux = "";     break;
+	case blRAND		:  aux = "RANDOM";    break;
 	case blSET		:  break;
 	default			:  assert(false);
       }
+
+      if (aux==0) aux = ether_ntoa(&i->mac);
 
       writeIP(fd, i->ip);
       WRITE_MSGSTR(fd, "/");
