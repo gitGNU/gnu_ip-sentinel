@@ -30,7 +30,7 @@ BuildRequires:	dietlibc
 
 
 %build
-%configure --enable-release %{?_without_dietlibc:--disable-dietlibc}
+%configure --enable-release --with-username=%{username} %{?_without_dietlibc:--disable-dietlibc}
 %{__make} all check
 
 
