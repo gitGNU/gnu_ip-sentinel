@@ -18,13 +18,15 @@
 
 ACLOCAL_AMFLAGS	=  -I m4
 
+CVS2CL_AMFLAGS	=  $(CVS2CL_TAG) -U cvsusers.map --show-dead
+CVS2CL_ALLFLAGS	:= $(CVS2CL_AMFLAGS) $(CVS2CL_FLAGS)
+
 WWW_HOST	=  janus.hrz
 WWW_DIR		=  public_html/ip-sentinel
 WWW_FILES_ROOT	=  $(srcdir)/doc/index.html
 WWW_FILES_FILES	=  $(distdir).tar.bz2 $(distdir).tar.bz2.asc $(srcdir)/README $(srcdir)/NEWS
 
 SUBDIRS		=  . src
-DIST_SUBDIRS	=  $(SUBDIRS) m4
 
 EXTRA_DIST	=  ip-sentinel.spec ${contrib_FILES} $(doc_FILES) \
 		   disttest disttest-data
