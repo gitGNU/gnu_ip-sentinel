@@ -22,6 +22,15 @@
 #define MAX_CHILDS		20
 #define MAX_ERRORS		6
 
+  // To be switch-friendly, only a limited amount of random MACs will be used
+  // at a certain time. This amount is specified by BLACKLIST_RAND_COUNT
+#define BLACKLIST_RAND_COUNT	32
+  // The window of used random MACs will be rotated with increasing time.
+  // BLACKLIST_RAND_PERIOD specifies the time in seconds after which a new
+  // random MAC will be added to this window and an old one be removed.
+#define BLACKLIST_RAND_PERIOD	30000
+
+
   // When resizing of a vector is *necessarily*, the new allocated size will be
   // set to VECTOR_SET_THRESHOLD * count. Omitting of parentheses is intended
   // to allow rational numbers but to avoid floating point operations
