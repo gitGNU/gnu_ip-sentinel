@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-AC_INIT(ip-sentinel, 0.8, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
+AC_INIT(ip-sentinel, 0.8.90, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
 AC_CONFIG_SRCDIR([src/antidos.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -45,6 +45,7 @@ AC_DEFINE(_GNU_SOURCE, 1, [Uses GNU features])
 ENSC_CHECK_CC_FLAG([-Wall -W -Wno-unused-function])
 ENSC_CHECK_CC_FLAG([-std=c99 ${RELEASE_CFLAGS} ${DEVELOPING_CFLAGS} ${DEVELOPING_STRICT_CFLAGS} -Wno-unreachable-code])
 
+ENSC_INITRDDIR(initrddir)
 
 AC_MSG_CHECKING([for configfile])
 AC_ARG_WITH(configfile,
