@@ -688,8 +688,8 @@ BlackList_update(BlackList *lst)
 static bool
 BlackList_compareAtMac(struct AtMac const * lhs, struct ether_addr const *rhs)
 {
-  assert(lhs!=0);
   bool		tmp;
+  assert(lhs!=0);
 
   if (lhs->status==amNONE)  return true;
   if (rhs==0)               return false;
