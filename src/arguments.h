@@ -25,7 +25,7 @@
 struct TaggedMac
 {
     enum {mcRANDOM, mcFIXED,
-	  mcLOCAL}		type;
+	  mcLOCAL, mcSAME}	type;
 
     union {
 	struct ether_addr	ether;

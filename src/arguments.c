@@ -133,10 +133,11 @@ printVersion(int fd)
 }
 
 static void
-Arguments_parseMac(char const *optarg, struct TaggedMac *mac)
+Arguments_parseMac(char const *optarg, struct TaggedMac *mac, bool allow_same)
 {
-  if      (strcmp(optarg, "RANDOM")==0) mac->type = mcRANDOM;
-  else if (strcmp(optarg, "LOCAL")==0)  mac->type = mcLOCAL;
+  if      (              strcmp(optarg, "RANDOM")==0) mac->type = mcRANDOM;
+  else if (              strcmp(optarg, "LOCAL") ==0) mac->type = mcLOCAL;
+  else if (allow_same && strcmp(optarg, "SAME")  ==0) mac->type = mcSAME;
   else {
     if (!xether_aton_r(optarg, &mac->addr.ether)) {
       WRITE_MSGSTR(2, "invalid mac specified\n");
@@ -190,9 +191,9 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
       case 'n'	:  options->do_fork  = false;  break;
       case 'r'	:  options->chroot   = optarg; break;
       case 'v'	:  printVersion(1); exit(0);   break;
-      case OPTION_MAC		:  Arguments_parseMac(optarg, &options->mac);   break;
-      case OPTION_LLMAC		:  Arguments_parseMac(optarg, &options->llmac); break;
-      case OPTION_DIRECTION	:  Arguments_parseDirection(optarg, options);   break;
+      case OPTION_MAC		:  Arguments_parseMac(optarg, &options->mac,  false); break;
+      case OPTION_LLMAC		:  Arguments_parseMac(optarg, &options->llmac, true); break;
+      case OPTION_DIRECTION	:  Arguments_parseDirection(optarg, options);         break;
 	
       default	:
 	WRITE_MSGSTR(2, "Try \"");
