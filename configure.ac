@@ -53,6 +53,11 @@ AC_PROG_CPP
 AC_PROG_LN_S
 AC_PROG_RANLIB
 
+ENSC_C99COMPILER
+if test "$ensc_cv_c99_c99compiler" != yes; then
+	AC_MSG_ERROR([This program requires a C99 compliant compiler.])
+fi
+
 ENSC_CHANGELOG()
 
 ENSC_STANDARD_TOOLS
@@ -67,6 +72,7 @@ ENSC_CHECK_CC_FLAG([-Wall -W -Wno-unused-function])
 ENSC_CHECK_CC_FLAG([-std=c99 ${RELEASE_CFLAGS} ${DEVELOPING_CFLAGS} ${DEVELOPING_STRICT_CFLAGS} -Wno-unreachable-code])
 
 ENSC_INITRDDIR(initrddir)
+
 
 AC_MSG_CHECKING([for configfile])
 AC_ARG_WITH(configfile,
@@ -107,6 +113,11 @@ ENSC_DIET_CHECK_IN_ADDR_T
 
 # Checks for library functions.
 ENSC_DIET_CHECK_ETHER
+ENSC_DIET_ENV([AC_CHECK_DECLS([strdupa],[], [], [
+#define _GNU_SOURCE
+#include <string.h>
+		])
+])
 
 AH_BOTTOM([#include "compat.h"])
 AC_CONFIG_FILES([Makefile
