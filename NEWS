@@ -1,3 +1,15 @@
+Version 0.8.90
+==============
+
+	- BUGFIX: requests which are matching negated '@!MAC' statements,
+	  are taking now precedence over later, more general matches
+	  (reported by Sergeev Sergey)
+	
+	- added workarounds for a bug in dietlibc-0.24's printf()
+	  function (affects testsuite only), and a gcc optimization bug
+	  (https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=110966)
+
+
 Version 0.8
 ===========
 
