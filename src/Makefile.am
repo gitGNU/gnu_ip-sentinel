@@ -26,7 +26,8 @@ endif
 
 lib_SRCS			=  arguments.c util.c blacklist.c 	\
 				   antidos.c prioqueue.c worker.c	\
-				   $(ether_SRCS)
+				   $(ether_SRCS)			\
+				   $(ensc_fmt_SRCS)
 
 EXTRA_ip_sentinel_SOURCES	=  ether.c
 ip_sentinel_SOURCES		=  ip-sentinel.c $(lib_SRCS)
@@ -38,7 +39,7 @@ noinst_HEADERS			=  antidos.h arguments.h arpmessage.h	\
 				   blacklist.h compat.h ip-sentinel.h	\
 				   parameters.h util.h			\
 				   worker.h jobinfo.h			\
-				   wrappers.h				\
+				   wrappers.h fmt.h			\
 				   prioqueue.h prioqueue.ic \
 				   $(ENSC_VECTOR_HDRS) $(ENSC_VECTOR_XHDRS)
 
@@ -53,3 +54,4 @@ TESTS				=  $(ENSC_VECTOR_TESTSUITE_TSTS)
 include $(top_srcdir)/m4/diet.am
 include $(srcdir)/testsuite/Makefile-files
 include $(srcdir)/ensc_vector/Makefile-files
+include $(srcdir)/ensc_fmt/Makefile-files

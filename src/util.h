@@ -67,8 +67,6 @@ xstrcat(char **dst, size_t *cnt, char const *src)
   xstrcatn(dst, cnt, src, strlen(src));
 }
 
-size_t fillUInt(char *dest, unsigned int nr);
-
 void writeUInt(int fd, unsigned int nr);
 void writeMsgTimestamp(int fd);
 void writeIP(int fd, struct in_addr);

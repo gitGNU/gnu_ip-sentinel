@@ -24,6 +24,7 @@
 #include "parameters.h"
 #include "util.h"
 #include "arguments.h"
+#include "fmt.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -451,7 +452,7 @@ BlackList_iterateRange(BlackList *lst,
   if (err_ptr>list_end)            PARSE_ERRROR("unexpected error while parsing range");
 
   for (; start<=end; ++start) {
-    size_t	len = fillUInt(prefix_end, start);
+    size_t	len = fmt_uint(prefix_end, start);
     
     memcpy(prefix_end+len, postfix_start, postfix_len);
 
