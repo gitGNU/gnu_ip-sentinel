@@ -1,8 +1,8 @@
-Version 0.5.1
-=============
-
+Version 0.6
+===========
 	- FEATURE: support for numeric IP-ranges was added; suggested by
 	  Jon Belanger
+	- ship minit run-script in contrib/
 	
 
 Version 0.5
