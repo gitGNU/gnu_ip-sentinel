@@ -58,6 +58,8 @@ ip-sentinel \- keeps your IP space clean
 .IR mac ]
 .RB [ \-\-direction
 .IR dir ]
+.RB [ \-\-action
+.IR program ]
 .RB [ \-\-nofork | \-n ]
 .RB [ \-\-help | \-h ]
 .RB [ \-\-version ]
@@ -176,6 +178,36 @@ option is used.
 This option takes an affect only when
 .I --destination BOTH \fRor\fI FROM
 is specified.
+.TP
+.BR \-\-action\ \fIprogram
+Execute \fBprogram\fR when a faked ARP reply will be generated. It
+will be called with 6 arguments:
+.RS
+.IP \(bu 2
+.IR type
+0 when an intruder sent the request, 1 when a protected IP was
+requested and -1 else (should never happen)
+.IP \(bu 2
+.IR spa
+the protocol address (IP) of the source
+.IP \(bu 2
+.IR sha
+the hardware address (MAC) of the source
+.IP \(bu 2
+.IR tpa
+the protocol address (IP) of the target
+.IP \(bu 2
+.IR tha
+the hardware address (MAC) of the target
+.IP \(bu 2
+.IR mac
+the generated MAC address
+.RE
+.RS
+
+The program will be executed only without evaluating its return value
+or something else.
+.RE
 .TP
 .BR \-\-help | \-h
 Prints help message and exits.
