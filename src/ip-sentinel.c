@@ -86,7 +86,7 @@ adjustUserGroup(struct Arguments *arguments, uid_t *uid, gid_t *gid)
   }
 }
 
-static void ALWAYSINLINE
+static void //ALWAYSINLINE
 daemonize(struct Arguments *arguments)
 {
   int			err_fd, out_fd, pid_fd;
@@ -295,7 +295,7 @@ generateJobFromIntruder(struct Worker *worker,
 }
 
 
-static void NORETURN ALWAYSINLINE
+static void NORETURN //ALWAYSINLINE
 run(struct Worker *worker, struct Arguments const *args) 
 {
   BlackList			cfg;
