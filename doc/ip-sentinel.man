@@ -32,6 +32,12 @@ ip-sentinel \- keeps your IP space clean
 .\"
 .SH SYNOPSIS
 .B ip-sentinel
+.RB [ \-\-user | \-u
+.IR username ]
+.RB [ \-\-group | \-g
+.IR groupname ]
+.RB [ \-\-chroot | \-r
+.IR dir ]
 .RB [ \-\-ipfile | \-i
 .IR file ]
 .RB [ \-\-pidfile | \-p
@@ -40,10 +46,6 @@ ip-sentinel \- keeps your IP space clean
 .IR file ]
 .RB [ \-\-errfile | \-e
 .IR file ]
-.RB [ \-\-user | \-u
-.IR username ]
-.RB [ \-\-chroot | \-r
-.IR dir ]
 .RB [ \-\-nofork | \-n ]
 .RB [ \-\-help | \-h ]
 .RB [ \-\-version ]
@@ -68,17 +70,17 @@ of these operations can by changed by the options described below.
 .\"
 .SH OPTIONS
 .TP
-.BR \-\-user | \-u\ \fIusername
+.BR \-\-user | \-u\ \fIusername\ \fRand\fB\ \-\-group | \-g\ \fIgroupname
 After doing basical initializations, the program will drop its
-privilegies by changing its user and group ID. The \fIusername\fR
-parameter determines these new IDs and must by an alphanumeric
-username or a numeric uid.
+privilegies by changing its user and group ID. The \fIusername\fR and
+\fIgroupname\fR parameters determine these new IDs and must by an
+alphanumeric username/groupname or a numeric uid/gid.
 
 .B Attention:
 .\"
 When having a dietlibc compiled version in a system which uses remote
 NSS (e.g. LDAP, NIS) to make passwd-lookups, you will have to use
-numeric uids.
+numeric IDs.
 .\"
 .TP
 .BR \-\-chroot | \-r\ \fIdirname
@@ -183,3 +185,22 @@ When having overlapping networks and/or single IPs, this with the most
 specified netmask (count of 1's) takes precedence. IPs have a netmask
 of 32. The behavior is unspecified when having networks with the same
 count of 1's or when having duplicate IPs.
+
+.SS EXAMPLE
+.RS 0
+0.0.0.0/0                 ## Block anything
+.RS 0
+!192.168.0.0/24           ## Allow IPs of the form 192.168.0.*
+.RS 0
+192.168.0.0               ## but block 192.168.0.0
+.RS 0
+192.168.0.1 a:b:c:d:e:f   ## and use a special mac for 192.168.0.1
+
+This configuration will not send ARP-replies for the IPs
+192.168.0.{2-255} but when a host tries to use e.g. 169.254.145.213,
+ip-sentinel will tell that this IP has a MAC of "de:ad:be:ef:00:XX".
+.\"
+.\" ====================
+.\"
+.SH AUTHOR
+Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
