@@ -31,9 +31,21 @@
 
     <h2>News</h2>
     <dl>
+      <dt>31 Oct 2003</dt>
+      <dd>Version  <a href="files/ip-sentinel-0.8.tar.bz2">0.8</a>
+	(117KiB) released</dd>
+      <dd class="remark">This version fixes a bug of the FROM-mode
+      in combination with 0.0.0.0 IPs which are used e.g. by DHCP or
+      DAD. It is allowed now, to specify MACs of source-addresses,
+      and to poison an intruders IP when he has sent a request. In
+      combination with MAC-tagged IP addresses, the correct MAC can
+      be propagated when an intruder uses the IP of temporarily
+      turned off machines. Some other parts of the code were made
+      more RFC826 compliant also.</dd>
+	
       <dt>09 Sep 2003</dt>
       <dd>Version  <a href="files/ip-sentinel-0.7.tar.bz2">0.7</a>
-	(111KiB) released</dd>
+	(110KiB) released</dd>
 
       <dd class="remark">This version uses an internal sheduler instead
       of fork() to send delayed ARP-replies. A new operation-mode was
@@ -126,7 +138,7 @@
 -->	      <small>
 <!-- Created: Fri Nov 15 18:41:30 CET 2002 -->
 <!-- hhmts start -->
-Last modified: Tue Sep  9 19:19:28 CEST 2003
+Last modified: Fri Oct 31 01:20:37 CET 2003
 <!-- hhmts end -->
               </small>
             </div>

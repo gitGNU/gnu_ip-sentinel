@@ -1,8 +1,8 @@
-Version 0.7.90
-==============
+Version 0.8
+===========
 
-	Default options/behavior have not changed yet, but chances are are
-	high that they will become '--poision --mac 802.3x --direction
+	Default options/behavior have not been changed yet, but chances
+	are high that they will become '--poision --mac 802.3x --direction
 	BOTH'.
 	
 	- FEATURE: added '--poison' option which enables the generation of
