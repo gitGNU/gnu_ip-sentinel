@@ -65,7 +65,7 @@ sigHup(int sig UNUSED)
 }
 
 inline static void
-adjustUserGroup(Arguments *arguments, uid_t *uid, gid_t *gid)
+adjustUserGroup(struct Arguments *arguments, uid_t *uid, gid_t *gid)
 {
   struct passwd const *	pw_user;
   char *		err_ptr;
@@ -96,7 +96,7 @@ adjustUserGroup(Arguments *arguments, uid_t *uid, gid_t *gid)
 }
 
 static void
-daemonize(Arguments *arguments)
+daemonize(struct Arguments *arguments)
 {
   int			err_fd, out_fd, pid_fd;
   int			aux;
@@ -296,7 +296,7 @@ handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_a
 }
 
 static void NORETURN
-run(int sock, int if_idx, char const *filename) 
+run(int sock, int if_idx, struct Arguments const *args) 
 {
   BlackList			cfg;
   AntiDOS			anti_dos;
@@ -310,7 +310,7 @@ run(int sock, int if_idx, char const *filename)
 
   memset(&addr, 0, sizeof(addr));
   
-  BlackList_init(&cfg, filename);
+  BlackList_init(&cfg, args);
   AntiDOS_init(&anti_dos);
 
   while (true) {
@@ -402,7 +402,7 @@ generateSocket(char const *iface, int *idx)
 int
 main(int argc, char *argv[])
 {
-  Arguments		arguments;
+  struct Arguments	arguments;
   int			sock;
   int			if_idx;
   
@@ -414,5 +414,5 @@ main(int argc, char *argv[])
   signal(SIGCHLD, sigChild);
   signal(SIGHUP,  sigHup);
 
-  run(sock, if_idx, arguments.ipfile);
+  run(sock, if_idx, &arguments);
 }
