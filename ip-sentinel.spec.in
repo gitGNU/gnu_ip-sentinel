@@ -7,7 +7,7 @@
 Summary:	A tool to prevent unauthorized usage of IPs
 Name:		ip-sentinel
 Version:	@VERSION@
-Release:	1
+Release:	2
 Epoch:		0
 License:	GPL
 Group:		System Environment/Daemons
@@ -85,7 +85,7 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING ChangeLog NEWS README THANKS
-%doc %{_mandir}/*/*
+%{_mandir}/*/*
 %{_sbindir}/*
 %config %{_initrddir}/*
 %config(noreplace) %{_sysconfdir}/sysconfig/*
@@ -93,6 +93,9 @@ fi
 
 
 %changelog
+* Thu Jul 17 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0:0.5-2
+- removed %%doc attribute from %%mandir-entries
+
 * Thu Jul 10 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0:0.5-1
 - moved 'make check' into the %%check section
 
