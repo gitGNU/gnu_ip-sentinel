@@ -39,7 +39,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
-
+#include <grp.h>
 
 static struct ether_addr const	BCAST_MAC   = { { 255, 255, 255, 255, 255, 255 } };
 
@@ -61,13 +61,44 @@ sigHup(int sig UNUSED)
   do_reload = 1;
 }
 
+inline static void
+adjustUserGroup(Arguments *arguments, uid_t *uid, gid_t *gid)
+{
+  struct passwd const *	pw_user;
+  char *		err_ptr;
+
+  assert(uid!=0 && gid!=0);
+  
+  *gid = static_cast(gid_t)(-1);
+  *uid = strtol(arguments->user, &err_ptr, 0);
+  if (arguments->user[0]!='\0' && *err_ptr=='\0') pw_user = getpwuid(*uid);
+  else                                            pw_user = Egetpwnam(arguments->user);
+  
+  if (pw_user!=0) {
+    *uid = pw_user->pw_uid;
+    *gid = pw_user->pw_gid;
+    if (arguments->chroot==0) arguments->chroot = pw_user->pw_dir;
+  }
+
+  if (arguments->group!=0) {
+    *gid = strtol(arguments->group, &err_ptr, 0);
+    if (arguments->group[0]=='\0' || *err_ptr!='\0')
+      *gid = Egetgrnam(arguments->group)->gr_gid;
+  }
+
+  if (*gid==static_cast(gid_t)(-1)) {
+    WRITE_MSGSTR(2, "Failed to determine gid; perhaps you should use the '-g' option. Aborting...\n");
+    exit(1);
+  }
+}
 
 static void
 daemonize(Arguments *arguments)
 {
   int			err_fd, out_fd, pid_fd;
   int			aux;
-  struct passwd const	*pw_user;
+  uid_t			uid;
+  gid_t			gid;
   pid_t			daemon_pid;
 
   err_fd = Eopen(arguments->errfile, O_WRONLY|O_CREAT|O_APPEND|O_NONBLOCK, 0700);
@@ -75,16 +106,16 @@ daemonize(Arguments *arguments)
   pid_fd = (!arguments->do_fork ? -1 :
 	    Eopen(arguments->pidfile, O_WRONLY|O_CREAT|O_TRUNC, 0755));
 
-  pw_user = Egetpwnam(arguments->user);
-  if (arguments->chroot == 0) arguments->chroot = pw_user->pw_dir;
+  adjustUserGroup(arguments, &uid, &gid);
+  
   if (arguments->chroot != 0) {
     Echdir(arguments->chroot);
     Echroot(arguments->chroot);
   }
 
-  Esetgroups(1, &pw_user->pw_gid);
-  Esetgid(pw_user->pw_gid);
-  Esetuid(pw_user->pw_uid);
+  Esetgroups(1, &gid);
+  Esetgid(gid);
+  Esetuid(uid);
 
   signal(SIGCHLD, sigChild);
   signal(SIGHUP,  sigHup);
@@ -141,8 +172,10 @@ sendPacket(int s, int if_idx, struct ether_addr const *mac, in_addr_t const ip,
 {
   ArpMessage d;
   struct sockaddr_ll	addr;
-  
-  memset(&d, 0, sizeof(d));
+
+  memset(&d,    0, sizeof d);
+  memset(&addr, 0, sizeof addr);
+
   d.padding[0] = 0x66;
   d.padding[1] = 0x60;
   d.padding[sizeof(d.padding)-2] = 0x0B;
