@@ -23,6 +23,7 @@
 #include <net/ethernet.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 
 static bool const	allow_leading_zeros = true;
 
