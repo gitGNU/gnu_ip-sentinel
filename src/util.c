@@ -25,12 +25,12 @@
 #include "ip-sentinel.h"
 #include "parameters.h"
 
+#include <netinet/ether.h>
 #include <unistd.h>
 #include <assert.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <netinet/ether.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <time.h>

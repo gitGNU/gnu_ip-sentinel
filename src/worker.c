@@ -26,7 +26,9 @@
 #include "prioqueue.h"
 #include "parameters.h"
 #include "util.h"
+#include "compat.h"
 
+#include <netinet/ether.h>
 #include <assert.h>
 #include <sys/time.h>
 #include <sys/types.h>

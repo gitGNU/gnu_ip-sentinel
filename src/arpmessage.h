@@ -21,7 +21,7 @@
 
 #include "compat.h"
 
-#include <netinet/ether.h>
+#include <net/ethernet.h>
 #include <net/if_arp.h>
 
 #include <features.h>    /* for the glibc version number */

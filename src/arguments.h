@@ -19,6 +19,7 @@
 #ifndef H_IPSENTINEL_ARGUMENTS_H
 #define H_IPSENTINEL_ARGUMENTS_H
 
+#include "compat.h"
 #include <stdbool.h>
 #include <net/ethernet.h>
 

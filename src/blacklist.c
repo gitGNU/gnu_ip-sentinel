@@ -30,7 +30,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <netinet/ether.h>
-#include <net/ethernet.h>
 #include <assert.h>
 #include <unistd.h>
 #include <sys/stat.h>

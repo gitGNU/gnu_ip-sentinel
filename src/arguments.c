@@ -29,7 +29,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <net/ethernet.h>
-#include <netinet/ether.h>
 
 #ifndef DEFAULT_IPFILE
 #  define DEFAULT_IPFILE		PATH_CONFIGFILE

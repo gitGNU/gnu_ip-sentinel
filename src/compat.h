@@ -19,6 +19,13 @@
 #ifndef H_ENSC_IPSENTINEL_SRC_COMPAT_H
 #define H_ENSC_IPSENTINEL_SRC_COMPAT_H
 
+#ifdef __dietlibc__
+#  define ethhdr		ethhdrX
+#  include <net/ethernet.h>
+#  undef  ethhdr
+#endif
+
+
 #ifndef __dietlibc__
 #  include <stropts.h>
 #else
@@ -40,7 +47,6 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #endif
 
 #ifdef __dietlibc__
-#include <netinet/if_ether.h>
 #include <net/if_arp.h>
 #include <stdint.h>
 
