@@ -24,13 +24,12 @@
 #include "arguments.h"
 #include <signal.h>
 
-volatile sig_atomic_t		child_count;
-
+struct ether_addr	local_mac_address = { { 127,0,0,1,0,0 } };
 
 int main(int argc, char *argv[])
 {
   struct Arguments	args = {
-    .mac_type  = mcRANDOM,
+    .mac = { .type  = mcRANDOM },
     .ipfile    = argv[1]
   };
   BlackList		lst;
