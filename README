@@ -1,4 +1,4 @@
-Release notes for IP Sentinel, version 0.2
+Release notes for IP Sentinel, version 0.4
 ==========================================
 
 In a perfect environment there are managed switches with one host per
@@ -136,10 +136,11 @@ When there are overlapping and conflicting statements which are
 specified in a similar manner, the behavior is undefined.
 
 
-When using single IPs, a specific MAC can be assigned. Else, a random
-one will be choosen in a switch-friendly way. "Switch-friendly" means
-that only a small amount (32) of random MACs will be used in a certain
-period, so that the MAC-buffer of the switch will not overflow.
+A MAC can be assigned to single IPs or entiry networks. When not
+giving such a MAC, a random one will be choosen in a switch-friendly
+way. "Switch-friendly" means that only a small amount (32) of random
+MACs will be used in a certain period, so that the MAC-buffer of the
+switch will not overflow.
 
 Specifying a MAC will probably not work in a switched environment
 because the switch will see an IP at different ports and will be
