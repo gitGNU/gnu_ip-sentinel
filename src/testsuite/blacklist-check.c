@@ -112,6 +112,10 @@ int main(int argc, char *argv[])
     else       printf("FAIL\n");
   }
 
+  BlackList_free(&lst);
+  fclose(result_file);
+  fclose(ip_file);
+  
   return EXIT_SUCCESS;  
 }
 

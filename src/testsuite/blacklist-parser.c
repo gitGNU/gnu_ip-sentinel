@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
   BlackList_softUpdate(&lst);
   BlackList_print(&lst,1);
 
+  BlackList_free(&lst);
+
   return EXIT_SUCCESS;
 }
 
