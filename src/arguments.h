@@ -34,6 +34,8 @@ struct Arguments
     char const *	chroot;
     char const *	iface;
 
+    enum {dirFROM=1, dirTO=2,
+	  dirBOTH=3}		arp_dir;
     enum {mcRANDOM, mcFIXED}	mac_type;
     struct ether_addr		mac_addr;
 };
