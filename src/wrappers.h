@@ -186,7 +186,7 @@ Esetsid()
 
 /*@unused@*/
 inline static size_t
-Ewrite(int fd, void *ptr, size_t len)
+Ewrite(int fd, void const *ptr, size_t len)
 {
   size_t	res = write(fd, ptr, len);
   FatalErrnoError((ssize_t)(res)==-1, 1, "write()");
