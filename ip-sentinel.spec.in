@@ -162,12 +162,15 @@ test "$1" = 0 || %_initrddir/%service condrestart &>/dev/null
 %files minit
 %defattr(-,root,root,-)
 %dir %minitsvcdir
-%config %minitsvcdir/run
+%minitsvcdir/run
 %minitsvcdir/respawn
-
+%config(noreplace) %minitsvcdir/params
 
 
 %changelog
+* Wed Jun 16 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.9.2-0
+- updated minit filelist
+
 * Sat Mar 20 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.9-0
 - workaround https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=118773
 
