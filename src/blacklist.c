@@ -40,19 +40,27 @@
 
 typedef enum {blUNDECIDED, blIGNORE, blSET, blRAND}	BlackListStatus;
 
+struct AtMac
+{
+    struct ether_addr				mac;
+    enum {amNONE, amPOSITIVE, amNEGATIVE }	status;
+};
+
 struct IPData
 {
-    struct in_addr	ip;
-    BlackListStatus	status;
-    struct ether_addr	mac;
+    struct in_addr		ip;
+    BlackListStatus		status;
+    struct ether_addr		mac;
+    struct AtMac		atmac;
 };
 
 struct NetData
 {
-    struct in_addr	ip;
-    struct in_addr	mask;
-    BlackListStatus	status;
-    struct ether_addr	mac;
+    struct in_addr		ip;
+    struct in_addr		mask;
+    BlackListStatus		status;
+    struct ether_addr		mac;
+    struct AtMac		atmac;
 };
 
 static unsigned int
@@ -189,20 +197,89 @@ BlackList_setDefaultMac(BlackList const *lst, struct ether_addr *addr)
   return res;
 }
 
+static bool ALWAYSINLINE
+BlackList_parseNetMask(struct in_addr * const result, char **start,
+		       UNUSED char const * const end, int line_nr)
+{
+  char	*endptr;
+  long	val;
+    
+  val = strtol(*start, &endptr, 0);
+  if (*start=='\0' || (*endptr!='\0' && *endptr!=' ' &&
+		       *endptr!='\t' && *endptr!='@') ) {
+      // the netmask is either w.x.y.z or invalid. Since inet_aton requires null-terminated strings,
+      // move to the first character which can not happen in an IP and assign it to '@'. Since it
+      // will required later, store it into a temporary variable and reassign later.
+    char	tmp;
+    while (*endptr!='\0' && *endptr!=' ' && *endptr!='@' && *endptr!='\t') ++endptr;
+    tmp     = *endptr;
+    *endptr = '\0';
+    
+    if (inet_aton(*start, result)==0) {
+      writeUInt(2, line_nr);
+      WRITE_MSGSTR(2, ": invalid netmask '");
+      WRITE_MSG   (2, *start);
+      WRITE_MSGSTR(2, "', first bad char was '");
+      write(2, endptr, 1);
+      WRITE_MSGSTR(2, "'\n");
+      return false;
+    }
+
+    *endptr = tmp;
+  }
+  else if (val<0 || val>32) PARSE_ERRROR("invalid netmask (too small or large)");
+  else {
+      // Avoid (~0u << 32) because this gives ~0u, but not 0.
+    result->s_addr   = ~0u;
+    if (val<32) {
+      result->s_addr <<= (32-val-1);
+      result->s_addr <<= 1;
+    }
+    result->s_addr   = htonl(result->s_addr);
+  }
+
+  *start = endptr;
+  return true;
+}
+
+static void
+BlackList_ignoreWhitespace(char **start)
+{
+  while (**start==' ' || **start=='\t') ++*start;
+}
+
+static bool
+BlackList_parseMac(char const *start, struct ether_addr *mac, int line_nr)
+{
+  if (xether_aton_r(start, mac)==0) {
+    writeUInt(2, line_nr);
+    WRITE_MSGSTR(2, ": invalid MAC '");
+    WRITE_MSG   (2, start);
+    WRITE_MSGSTR(2, "'\n");
+    return false;
+  }
+
+  return true;
+}
 
 static bool ALWAYSINLINE
 BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr)
 {
   BlackListStatus	parse_status = blUNDECIDED;
   char			*pos;
-  bool			has_mask = false;
+  bool			has_mask  = false;
+  bool			has_atmac = false;
 
   struct in_addr	parse_ip;
   struct in_addr	parse_mask;
   struct ether_addr	parse_mac;
+  struct AtMac		atmac = {
+    .status = amNONE,
+    .mac    = { {0,0,0,0,0,0} }
+  };
 
     // Ignore leading whitespaces
-  while (*start==' ' || *start=='\t') ++start;
+  BlackList_ignoreWhitespace(&start);
   if (start==end) return false;
 
     // The '!' prefix
@@ -212,10 +289,11 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     default	:  break;
   }
 
-    // The host-part
+    // The host or @-mac -part
   for (pos=start; pos<end; ++pos) {
     switch (*pos) {
-      case '/'		:  has_mask = true;
+      case '/'		:  has_mask  = true; *pos = '\0'; break;
+      case '@'		:  has_atmac = true; *pos = '\0'; break;
       case ' '		:
       case '\t'		:  *pos = '\0'; break;
     }
@@ -236,49 +314,37 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
   else         start = pos;
   
   if (!has_mask) parse_mask.s_addr = 0xffffffff;
-  else {
-    char	*endptr;
-    long	val;
-    
+  else if (!BlackList_parseNetMask(&parse_mask, &start, end, line_nr)) return false;
+
+    // The @-mac -part
+  if (!has_atmac && *start=='@') {
+    has_atmac = true;
+    ++start;
+  }
+
+  assert(start<=end);
+
+  if (has_atmac) {
+    if (*start=='!') { atmac.status=amNEGATIVE; ++start; }
+    else               atmac.status=amPOSITIVE;
+
     for (pos=start; pos<end; ++pos) {
       switch (*pos) {
 	case ' '	:
 	case '\t'	:  *pos = '\0'; break;
-	default		:  break;
       }
-
       if (*pos=='\0') break;
     }
 
-    val = strtol(start, &endptr, 0);
-    if (*start=='\0' || *endptr!='\0') {
-      if (inet_aton(start, &parse_mask)==0) {
-	writeUInt(2, line_nr);
-	WRITE_MSGSTR(2, ": invalid netmask '");
-	WRITE_MSG   (2, start);
-	WRITE_MSGSTR(2, "'\n");
-	return false;
-      }
-    }
-    else if (val<0 || val>32) PARSE_ERRROR("invalid netmask (too small or large)");
-    else {
-	// Avoid (~0u << 32) because this gives ~0u, but not 0.
-      parse_mask.s_addr   = ~0u;
-      if (val<32) {
-	parse_mask.s_addr <<= (32-val-1);
-	parse_mask.s_addr <<= 1;
-      }
-      parse_mask.s_addr   = htonl(parse_mask.s_addr);
-    }
-
+    if (!BlackList_parseMac(start, &atmac.mac, line_nr)) { return false; };
     if (pos<end) start = pos+1;
     else         start = pos;
   }
 
-    // Skip whitespaces
-  for (; start<end; ++start)
-    if (*start!=' ' && *start!='\t') break;
-
+  assert(start<=end);
+  BlackList_ignoreWhitespace(&start);
+  assert(start<=end);
+  
     // The MAC
   if (start==end || *start=='#') {
     if (parse_status!=blIGNORE)
@@ -299,14 +365,7 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
 
     if (strcmp(start, "RANDOM")==0) parse_status = blRAND;
     else {
-      if (xether_aton_r(start, &parse_mac)==0) {
-	writeUInt(2, line_nr);
-	WRITE_MSGSTR(2, ": invalid MAC '");
-	WRITE_MSG   (2, start);
-	WRITE_MSGSTR(2, "'\n");
-	return false;
-      }
-
+      if (!BlackList_parseMac(start, &parse_mac, line_nr)) return false;
       parse_status = blSET;
     }
   }
@@ -318,6 +377,7 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
     data->mask   = parse_mask;
     data->status = parse_status;
     data->mac	 = parse_mac;
+    data->atmac  = atmac;
 
     data->ip.s_addr &= data->mask.s_addr;
   }
@@ -326,7 +386,8 @@ BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr
 
     data->ip     = parse_ip;
     data->status = parse_status;
-    data->mac    = parse_mac;
+    data->mac	 = parse_mac;
+    data->atmac  = atmac;
   }
 
   return true;
@@ -624,8 +685,24 @@ BlackList_update(BlackList *lst)
   BlackList_softUpdate(lst);
 }
 
+static bool
+BlackList_compareAtMac(struct AtMac const * lhs, struct ether_addr const *rhs)
+{
+  assert(lhs!=0);
+  bool		tmp;
+
+  if (lhs->status==amNONE)  return true;
+  if (rhs==0)               return false;
+  tmp = memcmp(&lhs->mac, rhs, sizeof(*rhs))==0;
+
+  if (lhs->status==amPOSITIVE) return  tmp;
+  else                         return !tmp;
+}
+
 struct ether_addr const *
-BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct ether_addr *res)
+BlackList_getMac(BlackList const *lst_const,
+		 struct in_addr const ip, struct ether_addr const *mac,
+		 struct ether_addr *res)
 {
   struct ether_addr const *	result = 0;
     // 'status' is tied to 'result'; therefore compiler warnings about possible uninitialized usage
@@ -640,7 +717,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
 
   {
     struct IPData const	*data = Vector_search(&lst->ip_list, &ip, IPData_searchCompare);
-    if (data!=0) {
+    if (data!=0 && BlackList_compareAtMac(&data->atmac, mac)) {
       status = data->status;
       *res   = data->mac;
       result = res;
@@ -651,7 +728,8 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
     struct NetData const *	data    = Vector_begin(&lst->net_list);
     struct NetData const *	end_ptr = Vector_end(&lst->net_list);
     for (; data!=end_ptr; ++data) {
-      if ((ip.s_addr & data->mask.s_addr) == data->ip.s_addr) {
+      if ((ip.s_addr & data->mask.s_addr) == data->ip.s_addr &&
+	  BlackList_compareAtMac(&data->atmac, mac)) {
 	status = data->status;
 	*res   = data->mac;
 	result = res;
@@ -673,6 +751,21 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
 }
 
 #if !defined(NDEBUG) || defined(ENSC_TESTSUITE)
+static void
+BlackList_printAtMac(int fd, struct AtMac const * atmac)
+{
+  if (atmac->status!=amNONE) {
+    WRITE_MSGSTR(fd, "@");
+    switch (atmac->status) {
+      case amPOSITIVE	:  break;
+      case amNEGATIVE	:  WRITE_MSGSTR(fd, "!"); break;
+      default		:  WRITE_MSGSTR(fd, "?"); break;
+    }
+
+    WRITE_MSG(fd, ether_ntoa(&atmac->mac));
+  }
+}
+
 void
 BlackList_print(BlackList *lst, int fd)
 {
@@ -693,10 +786,11 @@ BlackList_print(BlackList *lst, int fd)
 	default			:  assert(false);
       }
 
-      if (aux==0) aux = ether_ntoa(&i->mac);
-
       writeIP(fd, i->ip);
+      BlackList_printAtMac(fd, &i->atmac);
       WRITE_MSGSTR(fd, "\t\t");
+
+      if (aux==0) aux = ether_ntoa(&i->mac);
       WRITE_MSG(fd, aux);
       WRITE_MSGSTR(fd, "\n");
     }
@@ -717,12 +811,14 @@ BlackList_print(BlackList *lst, int fd)
 	default			:  assert(false);
       }
 
-      if (aux==0) aux = ether_ntoa(&i->mac);
 
       writeIP(fd, i->ip);
       WRITE_MSGSTR(fd, "/");
       writeIP(fd, i->mask);
+      BlackList_printAtMac(fd, &i->atmac);
       WRITE_MSGSTR(fd, "\t\t");
+
+      if (aux==0) aux = ether_ntoa(&i->mac);
       WRITE_MSG(fd, aux);
       WRITE_MSGSTR(fd, "\n");
     }
