@@ -1,3 +1,10 @@
+Version 0.5.1
+=============
+
+	- FEATURE: support for numeric IP-ranges was added; suggested by
+	  Jon Belanger
+	
+
 Version 0.5
 ===========
 	- BUGFIX: when having multiple interfaces in the host, ip-sentinel
