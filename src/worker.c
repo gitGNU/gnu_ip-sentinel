@@ -41,7 +41,8 @@ static struct ether_addr const	BCAST_MAC   = { { 255, 255, 255, 255, 255, 255 } 
 static void	Worker_run(struct Worker *worker);
 
 void
-Worker_init(struct Worker *worker, int sock, int if_idx)
+Worker_init(struct Worker *worker, struct Arguments const *args,
+	    int sock, int if_idx)
 {
   pid_t		pid;
   int		fds[2];
@@ -50,6 +51,7 @@ Worker_init(struct Worker *worker, int sock, int if_idx)
 
   worker->sock   = sock;
   worker->if_idx = if_idx;
+  worker->llmac  = args->llmac;
 
   Epipe(fds);
   pid = Efork();
@@ -132,21 +134,54 @@ Worker_fillPacket(struct Worker const *worker,
   ArpMessage * const		msg  = &job->message;
   struct sockaddr_ll * const	addr = &job->address;
   void const *			dhost_ptr;
+  struct ether_addr		shost_ether;
+  struct ether_addr const *	shost_ptr;
+  register in_addr_t * const		arp_tpa_ptr = reinterpret_cast(in_addr_t*)(&msg->data.arp_tpa);
+  register in_addr_t const * const	rq_tpa_ptr  = reinterpret_cast(in_addr_t*)(&rq->request.arp_tpa);
+
+  assert(worker!=0);
+  assert(job!=0);
+  assert(rq!=0);
   
   memset(msg,  0, sizeof(*msg));
   memset(addr, 0, sizeof(*addr));
 
   switch (rq->type) {
     case jobDST		:
-      dhost_ptr                         = BCAST_MAC.ether_addr_octet;
-      *(in_addr_t*)(&msg->data.arp_tpa) = INADDR_ANY;
+      shost_ptr    = &rq->mac;
+      dhost_ptr    = BCAST_MAC.ether_addr_octet;
+      *arp_tpa_ptr = INADDR_ANY;
       break;
     case jobSRC		:
+      shost_ptr    = 0;
+      dhost_ptr    = rq->request.arp_sha;
+      *arp_tpa_ptr = *rq_tpa_ptr;
+      break;
     default		:
-      dhost_ptr                         = rq->request.arp_sha;
-      *(in_addr_t*)(&msg->data.arp_tpa) = *(in_addr_t*)(&rq->request.arp_spa);
+      assert(false);
+      WRITE_MSGSTR(2, "unknown 'rq->type' in Worker_fillPacket(); aborting...\n");
+      exit(1);
       break;
   }
+
+  if (shost_ptr==0) {
+    switch (worker->llmac.type) {
+      case mcSAME	:  shost_ptr = &rq->mac;                  break;
+      case mcFIXED	:  shost_ptr = &worker->llmac.addr.ether; break;
+      case mcRANDOM	:
+	Util_setRandomMac(&shost_ether);
+	shost_ptr = &shost_ether;
+	break;
+      default		:
+	assert(false);
+	WRITE_MSGSTR(2, "unknown 'worker->llmac.type' in Worker_fillPacket(); aborting...\n");
+	exit(1);
+	break;
+    }
+  }
+
+  assert(shost_ptr!=0);
+  assert(dhost_ptr!=0);
   
   msg->padding[0] = 0x66;
   msg->padding[1] = 0x60;
@@ -159,21 +194,18 @@ Worker_fillPacket(struct Worker const *worker,
   msg->data.ea_hdr.ar_pln = 4;
   msg->data.ea_hdr.ar_op  = htons(ARPOP_REPLY);
 
-  memcpy(msg->data.arp_sha, &rq->mac,             sizeof(msg->data.arp_sha));
-  memcpy(msg->data.arp_spa, &rq->request.arp_tpa, sizeof(msg->data.arp_spa));
-  memcpy(msg->data.arp_tha, dhost_ptr,            sizeof(msg->data.arp_tha));
+  memcpy(msg->data.arp_sha, &rq->mac,   sizeof(msg->data.arp_sha));
+  memcpy(msg->data.arp_spa, rq_tpa_ptr, sizeof(msg->data.arp_spa));
+  memcpy(msg->data.arp_tha, dhost_ptr,  sizeof(msg->data.arp_tha));
 
   msg->header.ether_type  = htons(ETH_P_ARP);
 
-  memcpy(msg->header.ether_shost, msg->data.arp_sha, sizeof(msg->header.ether_shost));
-  memcpy(msg->header.ether_dhost, dhost_ptr,         sizeof(msg->header.ether_dhost));
+  memcpy(msg->header.ether_shost, shost_ptr,      sizeof(msg->header.ether_shost));
+  memcpy(msg->header.ether_dhost, dhost_ptr,      sizeof(msg->header.ether_dhost));
 
 
   addr->sll_family   = AF_PACKET;
-  addr->sll_protocol = 0;
   addr->sll_ifindex  = worker->if_idx;
-  addr->sll_hatype   = 0;
-  addr->sll_pkttype  = 0;
   addr->sll_halen    = ETHER_ADDR_LEN;
 
   memcpy(addr->sll_addr, dhost_ptr, ETHER_ADDR_LEN);
@@ -197,11 +229,12 @@ arpether_ntoa(void const *ptr_v)
   return ether_ntoa(ptr);
 }
 
-static void
+static void ALWAYSINLINE
 Worker_printJob(struct RequestInfo const *rq)
 {
   writeMsgTimestamp(1);
 #if 0
+#warning !!! Legacy log-format enabled; support may be dropped without explicit warnings !!!
   WRITE_MSGSTR(1, ": Handle IP '");
   WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_tpa));
   WRITE_MSGSTR(1, "' requested by '");
@@ -214,7 +247,9 @@ Worker_printJob(struct RequestInfo const *rq)
   WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_spa));
   WRITE_MSGSTR(1, "/");
   WRITE_MSG   (1, arpether_ntoa(rq->request.arp_sha));
-  WRITE_MSGSTR(1, " -> ");
+  if      (rq->type==jobSRC) WRITE_MSGSTR(1, " !-> ");
+  else if (rq->type==jobDST) WRITE_MSGSTR(1, " ->! ");
+  else                       WRITE_MSGSTR(1, " ERR ");
   WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_tpa));
   WRITE_MSGSTR(1, "/");
   WRITE_MSG   (1, arpether_ntoa(rq->request.arp_tha));
@@ -318,13 +353,6 @@ Worker_run(struct Worker *worker)
     now = time(0);
     for (;;) {
       job = PriorityQueue_max(&jobqueue);
-#if 0
-      dprintf(10, "Worker_run() -> |queue|=%u, schedule_time=%u, now=%u\n",
-	      PriorityQueue_count(&jobqueue),
-	      job==0 ? -1 : job->schedule_time,
-	      now);
-#endif
-      
       if (job==0 || now<job->schedule_time) break;
       
       Worker_executeJob(worker, job);
@@ -334,3 +362,39 @@ Worker_run(struct Worker *worker)
     error_count = 0;
   }
 }
+
+#ifdef ENSC_TESTSUITE
+void
+Worker_printScheduleInfo(int fd, struct ScheduleInfo const *job)
+{
+  struct ether_header const * const	eth = &job->message.header;
+  struct ether_arp const * const	arp = &job->message.data;
+  struct sockaddr_ll const* const	sll = &job->address;
+
+  assert(eth->ether_type==htons(ETH_P_ARP));
+
+  WRITE_MSGSTR(fd, "ether=[");
+  WRITE_MSG   (fd, arpether_ntoa(eth->ether_dhost));
+  WRITE_MSGSTR(fd, ",");
+  WRITE_MSG   (fd, arpether_ntoa(eth->ether_shost));
+  WRITE_MSGSTR(fd, "], arp=[");
+  WRITE_MSG   (fd, arpether_ntoa(arp->arp_sha));
+  WRITE_MSGSTR(fd, ",");
+  WRITE_MSG   (fd, arpinet_ntoa (arp->arp_spa));
+  WRITE_MSGSTR(fd, ", ");
+  WRITE_MSG   (fd, arpether_ntoa(arp->arp_tha));
+  WRITE_MSGSTR(fd, ",");
+  WRITE_MSG   (fd, arpinet_ntoa (arp->arp_tpa));
+  WRITE_MSGSTR(fd, "], sock=[");
+  WRITE_MSG   (fd, arpether_ntoa(sll->sll_addr));
+  WRITE_MSGSTR(fd, "]\n");
+}
+
+void
+Worker_debugFillPacket(struct Worker const *worker,
+		       struct ScheduleInfo *job,
+		       struct RequestInfo const *rq)
+{
+  Worker_fillPacket(worker, job, rq);
+}
+#endif
