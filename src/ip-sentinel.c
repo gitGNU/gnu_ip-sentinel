@@ -55,7 +55,7 @@ sigHup(int sig UNUSED)
   signal(SIGHUP, sigHup);
 }
 
-inline static void
+static void ALWAYSINLINE
 adjustUserGroup(struct Arguments *arguments, uid_t *uid, gid_t *gid)
 {
   struct passwd const *	pw_user;
@@ -86,7 +86,7 @@ adjustUserGroup(struct Arguments *arguments, uid_t *uid, gid_t *gid)
   }
 }
 
-static void
+static void ALWAYSINLINE
 daemonize(struct Arguments *arguments)
 {
   int			err_fd, out_fd, pid_fd;
@@ -139,7 +139,7 @@ daemonize(struct Arguments *arguments)
   Eclose(err_fd);
 }
 
-static int
+inline static int ALWAYSINLINE
 getIfIndex(int fd, char const *iface_name)
 {
   struct ifreq		iface;
@@ -157,7 +157,7 @@ getIfIndex(int fd, char const *iface_name)
   return iface.ifr_ifindex;
 }
 
-static void
+static void ALWAYSINLINE
 generateJobToIntruder(struct Worker *worker,
 		      AntiDOS *anti_dos, BlackList const *blacklist,
 		      ArpMessage const *const msg,
@@ -209,7 +209,7 @@ int *oversize_sleep)
 }
 
 
-static void
+static void ALWAYSINLINE
 generateJobFromIntruder(struct Worker *worker,
 			AntiDOS *anti_dos, BlackList const *blacklist,
 			ArpMessage const *const msg,
@@ -261,7 +261,7 @@ generateJobFromIntruder(struct Worker *worker,
 }
 
 
-static void NORETURN
+static void NORETURN ALWAYSINLINE
 run(struct Worker *worker, struct Arguments const *args) 
 {
   BlackList			cfg;
@@ -317,7 +317,7 @@ run(struct Worker *worker, struct Arguments const *args)
   }
 }
 
-int
+inline static int ALWAYSINLINE
 generateSocket(char const *iface, int *idx)
 {
   int			sock = Esocket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
@@ -348,6 +348,10 @@ main(int argc, char *argv[])
 
   sock   = generateSocket(arguments.iface, &if_idx);
   daemonize(&arguments);
+
+  initLocalMac(sock, arguments.iface);
+  Arguments_fixupOptions(&arguments);
+  
   Worker_init(&worker, sock, if_idx);
 
   signal(SIGHUP,  sigHup);
