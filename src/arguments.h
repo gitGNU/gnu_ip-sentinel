@@ -44,6 +44,7 @@ struct Arguments
     char const *	chroot;
     char const *	iface;
     bool		do_poison;
+    char const *	action_cmd;
 
     enum {dirFROM=1, dirTO=2,
 	  dirBOTH=3}	arp_dir;

@@ -75,6 +75,7 @@ cmdline_options[] = {
   { "chroot",    required_argument, 0, 'r' },
   { "help",      no_argument,       0, 'h' },
   { "version",   no_argument,       0, 'v' },
+  { "action",    required_argument, 0, 'a' },
   { "mac",       required_argument, 0, OPTION_MAC },
   { "llmac",     required_argument, 0, OPTION_LLMAC },
   { "direction", required_argument, 0, OPTION_DIRECTION },
@@ -120,6 +121,9 @@ printHelp(char const *cmd, int fd)
 	       "      --poison                generate faked ARP-answers for an intruder's ip\n"
 	       "                              address when *he* sends a request. Works only\n"
 	       "                              in combination with '--direction FROM|BOTH'.\n"
+	       "      --action <program>      execute <program> when faked replies will be\n"
+	       "                              generated. This program will be called with 6\n"
+	       "                              arguments: <type> <spa> <sha> <tpa> <tha> <mac>.\n"
 	       "      --help|-h               display this text and exit\n"
 	       "      --version               print version and exit\n"
 	       "      interface               ethernet-interface where to listen\n"
@@ -180,6 +184,7 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
   options->arp_dir  = dirBOTH;
   options->llmac.type = mcLOCAL;
   options->do_poison  = true;
+  options->action_cmd = 0;
 
   Arguments_parseMac("802.3x", &options->mac, false);
 
@@ -189,14 +194,15 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
 
     switch (c) {
       case 'h'  :  printHelp(argv[0],1); exit(0); break;
-      case 'i'	:  options->ipfile   = optarg; break;
-      case 'p'	:  options->pidfile  = optarg; break;
-      case 'l'	:  options->logfile  = optarg; break;
-      case 'e'	:  options->errfile  = optarg; break;
-      case 'u'	:  options->user     = optarg; break;
-      case 'g'	:  options->group    = optarg; break;
-      case 'n'	:  options->do_fork  = false;  break;
-      case 'r'	:  options->chroot   = optarg; break;
+      case 'a'	:  options->action_cmd = optarg; break;
+      case 'e'	:  options->errfile    = optarg; break;
+      case 'g'	:  options->group      = optarg; break;
+      case 'i'	:  options->ipfile     = optarg; break;
+      case 'l'	:  options->logfile    = optarg; break;
+      case 'p'	:  options->pidfile    = optarg; break;
+      case 'r'	:  options->chroot     = optarg; break;
+      case 'u'	:  options->user       = optarg; break;
+      case 'n'	:  options->do_fork    = false;  break;
       case 'v'	:  printVersion(1); exit(0);   break;
       case OPTION_MAC		:  Arguments_parseMac(optarg, &options->mac,  false); break;
       case OPTION_LLMAC		:  Arguments_parseMac(optarg, &options->llmac, true); break;
