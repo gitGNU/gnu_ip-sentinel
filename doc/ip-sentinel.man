@@ -20,7 +20,7 @@
 .\" except that this permission notice may be stated in a translation
 .\" approved by the Free Software Foundation
 .\"  
-.TH ip-sentinel 8 "May 27 2003" "@PACKAGE@ 0.4"
+.TH ip-sentinel 8 "Aug 01 2003" "@PACKAGE@ 0.6"
 .\"
 .\" ====================
 .\"
@@ -190,6 +190,61 @@ most specified netmask (count of 1's) takes precedence. IPs have a
 netmask of 32. The behavior is unspecified when having overlapping
 networks with the same count of 1's or when having duplicate IPs.
 
+.\"
+.SS PERFORMANCE
+.\"
+The lookup of single IPs has a complexity of O(log n) and this of
+netmasks a complexity of O(n).
+
+.\"
+.SS RANGES
+.\"
+Except in comments, it is possible to specify ranges everywhere in the
+configuration file. These ranges are having the format "{from-to}" or
+"{item1,item2,...,itemN}". The first format includes any number
+beginning at "from" till "to" (inclusive), while the latter format
+expands to the listed items only. The expansion happens on a
+line-level and it is possible to use more than one range per line, so
+that
+
+.RS 0
+192.168.0.{1-3}     0:0:0:0:0:1
+.RS 0
+192.168.1.{1,3}     0:0:0:0:0:2
+.RS 0
+192.168.{2,4}.{1-3} 0:0:0:0:0:3
+
+is the same like writing
+
+.RS 0
+192.168.0.1         0:0:0:0:0:1
+.RS 0
+192.168.0.2         0:0:0:0:0:1
+.RS 0
+192.168.0.3         0:0:0:0:0:1
+.RS 0
+192.168.1.1         0:0:0:0:0:1
+.RS 0
+192.168.1.3         0:0:0:0:0:1
+.RS 0
+192.168.2.1         0:0:0:0:0:3
+.RS 0
+192.168.2.2         0:0:0:0:0:3
+.RS 0
+192.168.2.3         0:0:0:0:0:3
+.RS 0
+192.168.4.1         0:0:0:0:0:3
+.RS 0
+192.168.4.2         0:0:0:0:0:3
+.RS 0
+192.168.4.3         0:0:0:0:0:3
+
+Because there can be created very much entries with a single line
+(e.g. "{0-255}.{0-255}.{0-255}.{0-255}" would cover the entire IPv4
+internet), ranges should be used sparely. When possible, large ranges
+should be expressed with netmasks.
+
+.\"
 .SS EXAMPLE
 .RS 0
 0.0.0.0/0                 ## Block anything
@@ -200,9 +255,9 @@ networks with the same count of 1's or when having duplicate IPs.
 .RS 0
 192.168.0.1 a:b:c:d:e:f   ## and use a special mac for 192.168.0.1
 
-This configuration will not send ARP-replies for the IPs
-192.168.0.{2-255} but when a host tries to use e.g. 169.254.145.213,
-ip-sentinel will tell that this IP has a MAC of "de:ad:be:ef:00:XX".
+This setup will not send ARP-replies for the IPs 192.168.0.{2-255} but
+when a host tries to use e.g. 169.254.145.213, ip-sentinel will tell
+that this IP has a MAC of "de:ad:be:ef:00:XX".
 .\"
 .\" ====================
 .\"
