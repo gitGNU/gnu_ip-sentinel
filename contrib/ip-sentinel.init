@@ -26,22 +26,22 @@ prog="ip-sentinel"
 
 start () {
 	echo -n $"Starting $prog: "
-	if test x"${NEEDS_NUMERIC_UID}" = xyes; then
-	    test -z "$GROUP" && \
-	    x=`id -g ${USER:-$defuser} 2>/dev/null` && GROUP="$x"
-	    x=`id -u ${USER:-$defuser} 2>/dev/null` && USER="$x"
+	if test x"${IPS_NEEDS_NUMERIC_UID}" = xyes; then
+	    test -z "$IPS_GROUP" && \
+	    x=`id -g ${IPS_USER:-$defuser} 2>/dev/null` && IPS_GROUP="$x"
+	    x=`id -u ${IPS_USER:-$defuser} 2>/dev/null` && IPS_USER="$x"
 	fi
 
 	opt=
-	test "$USER"    && opt="${opt}-u $USER "
-	test "$GROUP"   && opt="${opt}-g $GROUP "
-	test "$CHROOT"  && opt="${opt}-r $CHROOT "
-	test "$IPFILE"  && opt="${opt}-i $IPFILE "
-	test "$LOGFILE" && opt="${opt}-i $LOGFILE "
-	test "$ERRFILE" && opt="${opt}-i $ERRFILE "
-	test "$OPTIONS" && opt="${opt}$OPTIONS"
+	test "$IPS_USER"    && opt="${opt}-u $IPS_USER "
+	test "$IPS_GROUP"   && opt="${opt}-g $IPS_GROUP "
+	test "$IPS_CHROOT"  && opt="${opt}-r $IPS_CHROOT "
+	test "$IPS_IPFILE"  && opt="${opt}-i $IPS_IPFILE "
+	test "$IPS_LOGFILE" && opt="${opt}-i $IPS_LOGFILE "
+	test "$IPS_ERRFILE" && opt="${opt}-i $IPS_ERRFILE "
+	test "$IPS_OPTIONS" && opt="${opt}$OPTIONS"
 
-	daemon ip-sentinel ${opt} ${DEVICE:-eth0}
+	daemon ip-sentinel ${opt} ${IPS_DEVICE:-eth0}
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/ip-sentinel
