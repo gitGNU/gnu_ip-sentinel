@@ -5,10 +5,10 @@
 .\" this manual provided the copyright notice and this permission notice
 .\" are preserved on all copies.
 .\"  
-.\" Permission is granted to process this file through TeX and print the
-.\" results, provided the printed document carries copying permission
-.\" notice identical to this one except for the removal of this paragraph
-.\" (this paragraph not being relevant to the printed manual).
+.\" Permission is granted to process this file through groff/nroff and related
+.\" tools and print the results, provided the printed document carries copying
+.\" permission notice identical to this one except for the removal of this
+.\" paragraph (this paragraph not being relevant to the printed manual).
 .\"  
 .\" Permission is granted to copy and distribute modified versions of this
 .\" manual under the conditions for verbatim copying, provided that the
@@ -20,7 +20,7 @@
 .\" except that this permission notice may be stated in a translation
 .\" approved by the Free Software Foundation
 .\"  
-.TH ip-sentinel 8 "Aug 01 2003" "@PACKAGE@ 0.6"
+.TH ip-sentinel 8 "Aug 28 2003" "@PACKAGE@ 0.7"
 .\"
 .\" ====================
 .\"
@@ -46,6 +46,12 @@ ip-sentinel \- keeps your IP space clean
 .IR file ]
 .RB [ \-\-errfile | \-e
 .IR file ]
+.RB [ \-\-mac
+.IR mac ]
+.RB [ \-\-llmac
+.IR mac ]
+.RB [ \-\-direction
+.IR dir ]
 .RB [ \-\-nofork | \-n ]
 .RB [ \-\-help | \-h ]
 .RB [ \-\-version ]
@@ -64,6 +70,14 @@ MAC, rendering the IP unreachable.
 After startup it opens its logfiles, goes into a chroot jail, drops
 privileges and forks itself into background by default. The parameters
 of these operations can by changed by the options described below.
+
+.B Warning:
+.\"
+with an uncareful configuration, ip-sentinel can bring down the entire
+network and your physical presence at the ip-sentinel machine and/or
+the switch will be required to fix it. Some switches can show an
+unexpected behavior are even crash when the special \fI802.*\fR
+mac-addresses will be used.
 .\"
 .\" ====================
 .\"
@@ -119,6 +133,26 @@ by default.
 Prevents daemon from going into background after initialization. This
 option may be useful when using advanced init-concepts like minit
 (http://www.fefe.de/minit/).
+.TP
+.BR \-\-direction\ \fIdir
+ip-sentinel can answer both requests asking for an intruder's address,
+and requests coming from an intruder asking for official
+addresses. This parameter specifies which requests shall be
+answered. Possible values are \fIFROM\fR (requests from intruders),
+\fITO\fR (requests to intruders) and \fIBOTH\fR. The default value is
+\fITO\fR.
+.TP
+.BR \-\-mac\ \fImac
+Use \fImac\fR as the default faked mac-address; see below for possible
+values. This parameter can be overriden in the ipfile for each
+questionable IP. The default value is \fIRANDOM\fR.
+.TP
+.BR \-\-llmac\ \fImac
+Specifies the mac-address which will be used in the link-level headers
+when answering requests \fBfrom\fR intruders. Additionally to the
+values described below, ip-sentinel understands the \fISAME\fR string,
+which means that the address from the ARP-header will be used. The
+default is \fILOCAL\fR.
 .TP
 .BR \-\-help | \-h
 Prints help message and exits.
@@ -197,6 +231,34 @@ The lookup of single IPs has a complexity of O(log n) and this of
 netmasks a complexity of O(n).
 
 .\"
+.SS SPECIAL MAC ADDRESSES
+.\"
+Beside the usual hex-octets-delimited-by-colons mac addresses,
+ip-sentinel understands some special strings both on the commandline
+and in the configuration file:
+.TP
+.BR LOCAL
+expands to the mac-address of the used interface
+.TP
+.BR RANDOM
+means a random mac-address which is newly calculated on every usage
+.TP
+.BR 802.1d
+expands to 01:80:C2:00:00:00 which is the "Bridge Group Address".
+.TP
+.BR 802.3x
+expands to 01:80:C2:00:00:01 which is the "IEEE Std. 802.3x Full
+Duplex PAUSE operation".
+.\"
+.PP
+The \fI802.*\fR addresses are having a special meaning for some
+switches and packets having them as destination-address will be
+dropped by the switch instead of flooding all ports. But it depends on
+the used switch how/if these macs are honored.
+
+Some switches can show an unexpected behavior are even crash if the
+special \fI802.*\fR mac-addresses will be used.
+.\"
 .SS RANGES
 .\"
 Except in comments, it is possible to specify ranges everywhere in the
@@ -253,11 +315,19 @@ should be expressed with netmasks.
 .RS 0
 192.168.0.0               ## but block 192.168.0.0
 .RS 0
-192.168.0.1 a:b:c:d:e:f   ## and use a special mac for 192.168.0.1
+192.168.0.1 a:b:c:d:e:f   ## use a special mac for 192.168.0.1
+.RS 0
+192.168.0.2 802.1d        ## and 01:80:C2:00:00:00 for 192.168.0.2
 
-This setup will not send ARP-replies for the IPs 192.168.0.{2-255} but
+This setup will not send ARP-replies for the IPs 192.168.0.{3-255} but
 when a host tries to use e.g. 169.254.145.213, ip-sentinel will tell
 that this IP has a MAC of "de:ad:be:ef:00:XX".
+.\"
+.\" ====================
+.\"
+.SH SEE ALSO
+.BR RFC\ 826 ,
+.BR IEEE\ Std\ 802.1D
 .\"
 .\" ====================
 .\"
