@@ -29,6 +29,8 @@
 #include "arpmessage.h"
 #include "compat.h"
 #include "ip-sentinel.h"
+#include "worker.h"
+#include "jobinfo.h"
 
 #include <assert.h>
 #include <unistd.h>
@@ -42,20 +44,9 @@
 #include <sys/wait.h>
 #include <grp.h>
 
-static struct ether_addr const	BCAST_MAC   = { { 255, 255, 255, 255, 255, 255 } };
-
-volatile sig_atomic_t		child_count;
 static volatile sig_atomic_t	do_reload;
 
-static void sigChild(int);
 static void sigHup(int);
-
-void
-sigChild(int sig UNUSED)
-{
-  while (waitpid(-1, 0, WNOHANG)>0) { if (child_count>0) --child_count; }
-  signal(SIGCHLD, sigChild);
-}
 
 void
 sigHup(int sig UNUSED)
@@ -167,136 +158,108 @@ getIfIndex(int fd, char const *iface_name)
 }
 
 static void
-sendPacket(int s, int if_idx, struct ether_addr const *mac, in_addr_t const ip,
-	   int count, long sleep_dur)
+generateJobToIntruder(struct Worker *worker,
+		      AntiDOS *anti_dos, BlackList const *blacklist,
+		      ArpMessage const *const msg, int *oversize_sleep)
 {
-  ArpMessage d;
-  struct sockaddr_ll	addr;
-
-  memset(&d,    0, sizeof d);
-  memset(&addr, 0, sizeof addr);
-
-  d.padding[0] = 0x66;
-  d.padding[1] = 0x60;
-  d.padding[sizeof(d.padding)-2] = 0x0B;
-  d.padding[sizeof(d.padding)-1] = 0x5E;
+  struct ether_addr		mac_buffer;
+  struct ether_addr const	*mac;
+  int				arp_count;
+  struct RequestInfo		job;
+  struct in_addr const *	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
+  struct in_addr const *	dst_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
   
-  d.data.ea_hdr.ar_hrd = htons(ARPHRD_ETHER);
-  d.data.ea_hdr.ar_pro = htons(ETHERTYPE_IP);
-  d.data.ea_hdr.ar_hln = ETHER_ADDR_LEN;
-  d.data.ea_hdr.ar_pln = 4;
-  d.data.ea_hdr.ar_op  = htons(ARPOP_REPLY);
-
-  memcpy(d.data.arp_sha, mac->ether_addr_octet, sizeof(d.data.arp_sha));
-  memcpy(d.data.arp_spa, &ip, sizeof(d.data.arp_spa));
-
-  memcpy(d.data.arp_tha, BCAST_MAC.ether_addr_octet, sizeof(d.data.arp_tha));
-  *(in_addr_t*)(&d.data.arp_tpa) = INADDR_ANY;
-
-  memcpy(d.header.ether_dhost, BCAST_MAC.ether_addr_octet, sizeof(d.header.ether_dhost));
-  memcpy(d.header.ether_shost, d.data.arp_sha,             sizeof(d.header.ether_shost));
-  d.header.ether_type  = htons(ETH_P_ARP);
-
-  addr.sll_family   = AF_PACKET;
-  addr.sll_protocol = 0;
-  addr.sll_ifindex  = if_idx;
-  addr.sll_hatype   = 0;
-  addr.sll_pkttype  = 0;
-  addr.sll_halen    = ETHER_ADDR_LEN;
-  memcpy(addr.sll_addr, d.data.arp_tha, ETHER_ADDR_LEN);
-
-  while (count!=0) {
-    int ret = TEMP_FAILURE_RETRY(sendto(s, &d, sizeof(d), 0,
-					reinterpret_cast(struct sockaddr const *)(&addr), sizeof(addr)));
-
-    FatalErrnoError(ret==-1, 1, "sendto()");
-    
-    if (count!=-1) --count;
-    if (count!=0) sleep(sleep_dur);
-  }
-}
-
-static void
-handlePacket(int sock,  int if_idx, struct ether_addr const *mac,
-	     struct ether_arp const *data)
-{
-  char		buffer[128];
-  char *	buf_ptr = buffer;
-  size_t	len     = sizeof(buffer);
-
-  struct in_addr const		*spa = reinterpret_cast(struct in_addr const *)   (&data->arp_spa);
-  struct in_addr const		*tpa = reinterpret_cast(struct in_addr const *)   (&data->arp_tpa);
-  struct ether_addr const	*sha = reinterpret_cast(struct ether_addr const *)(&data->arp_sha);
-
-  assert(spa!=0 && tpa!=0 && sha!=0);
-
-    // Because this function will be called from a child-process and the logfile will not be locked,
-    // try to make the write-operation as atomic as possible. Races can not prevented entirely since
-    // the timestamp will be given out separately, but it is unlikely because concurrenting
-    // child-processes will be started only after finishing some lengthy tasks (blacklist- and
-    // antidos management)
-  XSTRCAT(&buf_ptr, &len, ": Handle IP '");
-  xstrcat(&buf_ptr, &len, inet_ntoa(*tpa));
-  XSTRCAT(&buf_ptr, &len, "' requested by '");
-  xstrcat(&buf_ptr, &len, inet_ntoa(*spa));
-  XSTRCAT(&buf_ptr, &len, "' [");
-  xstrcat(&buf_ptr, &len, ether_ntoa(sha));
-  XSTRCAT(&buf_ptr, &len, "]\n");
-
-  writeMsgTimestamp(1);
-  write(1, buffer, sizeof(buffer)-len);
-
-  sendPacket(sock, if_idx, mac, tpa->s_addr, 1, 0);
-  usleep(1500000);
-  sendPacket(sock, if_idx, mac, tpa->s_addr, 3, 2);
-}
-
-static void
-handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_arp const *data)
-{
-  static int		error_count =0;
-  pid_t			pid;
-  sigset_t		block_set, old_set;
-
-  while (child_count>=MAX_CHILDS) {
+  mac = BlackList_getMac(blacklist, *dst_ip, &mac_buffer);
+  if (mac==0) return;
+  
+  assert(src_ip!=0);
+  if (AntiDOS_isOversized(anti_dos)) {
     writeMsgTimestamp(2);
-    WRITE_MSGSTR(2, ": Too much children (");
-    writeUInt(2, child_count);
-    WRITE_MSGSTR(2, ") forked; sleeping a while...\n");
-    sleep(1);
+    WRITE_MSGSTR(2, ": Too much requests from too much IPs; last IP was ");
+    writeIP     (2, *src_ip);
+    WRITE_MSGSTR(2, "\n");
+    
+    sleep(*oversize_sleep);
+    *oversize_sleep = MIN(*oversize_sleep+1, 10);
+
+    return;
   }
 
-  sigfillset(&block_set);
-  sigprocmask(SIG_BLOCK, &block_set, &old_set);
+  *oversize_sleep = 1;
+  arp_count = AntiDOS_registerIP(anti_dos, *src_ip);
 
-  pid = fork();
-  switch (pid) {
-    case -1	:
-      perror("fork()");
-      writeMsgTimestamp(2);
-      WRITE_MSGSTR(2, ": fork() failed");
-      ++error_count;
-      if (error_count>MAX_ERRORS) {
-	WRITE_MSGSTR(2, "aborting...");
-	exit(1);
-      }
-      break;
-      
-    case 0	:
-      handlePacket(sock, if_idx, mac, data);
-      exit(0);
-
-    default	:
-      ++child_count;
-      error_count = 0;
-      break;
+  if (isDOS(arp_count)) {
+    writeMsgTimestamp(2);
+    WRITE_MSGSTR(2, ": Too much requests from ");
+    writeIP     (2, *src_ip);
+    WRITE_MSGSTR(2, "; DOS-measurement was ");
+    writeUInt   (2, arp_count);
+    WRITE_MSGSTR(2, "\n");
+    return;
   }
 
-  sigprocmask(SIG_SETMASK, &old_set, 0);
+  memset(&job, 0, sizeof job);
+  job.request = msg->data;
+  job.mac     = *mac;
+  job.type    = jobDST;
+
+  Worker_sendJob(worker, &job);
 }
+
+
+static void
+generateJobFromIntruder(struct Worker *worker,
+			AntiDOS *anti_dos, BlackList const *blacklist,
+			ArpMessage const *const msg, int *oversize_sleep)
+{
+  struct ether_addr		mac_buffer;
+  struct ether_addr const	*mac;
+  int				arp_count;
+  struct RequestInfo		job;
+  struct in_addr const *	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
+  struct in_addr const *	dst_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
+  
+  mac = BlackList_getMac(blacklist, *src_ip, &mac_buffer);
+  if (mac==0) return;
+  
+  assert(dst_ip!=0);
+  if (AntiDOS_isOversized(anti_dos)) {
+    writeMsgTimestamp(2);
+    WRITE_MSGSTR(2, ": Too much requests from too much IPs; last IP was ");
+    writeIP     (2, *dst_ip);
+    WRITE_MSGSTR(2, "\n");
+    
+    sleep(*oversize_sleep);
+    *oversize_sleep = MIN(*oversize_sleep+1, 10);
+    return;
+  }
+
+  *oversize_sleep = 1;
+  arp_count = AntiDOS_registerIP(anti_dos, *src_ip);
+
+  if (isDOS(arp_count)) {
+    writeMsgTimestamp(2);
+    WRITE_MSGSTR(2, ": Too much requests from intruder ");
+    writeIP     (2, *src_ip);
+    WRITE_MSGSTR(2, "; DOS-measurement was ");
+    writeUInt   (2, arp_count);
+    WRITE_MSGSTR(2, ", current dst ");
+    writeIP     (2, *dst_ip);
+    WRITE_MSGSTR(2, "\n");
+    return;
+  }
+
+  memset(&job, 0, sizeof job);
+  job.request = msg->data;
+  job.mac     = *mac;
+  job.type    = jobSRC;
+
+  Worker_sendJob(worker, &job);
+}
+
 
 static void NORETURN
-run(int sock, int if_idx, struct Arguments const *args) 
+run(struct Worker *worker, struct Arguments const *args) 
 {
   BlackList			cfg;
   AntiDOS			anti_dos;
@@ -305,8 +268,8 @@ run(int sock, int if_idx, struct Arguments const *args)
   socklen_t			from_len;
   char				buffer[4096];
   ArpMessage const * const	msg    = reinterpret_cast(ArpMessage const *)(buffer);
-  struct in_addr const	*	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
   unsigned int			oversize_sleep = 1;
+  int				sock = worker->sock;
 
   memset(&addr, 0, sizeof(addr));
   
@@ -315,9 +278,6 @@ run(int sock, int if_idx, struct Arguments const *args)
 
   while (true) {
     size_t			size;
-    int				arp_count;
-    struct ether_addr const	*mac;
-    struct ether_addr		mac_buffer;
     
     AntiDOS_update(&anti_dos);
 
@@ -337,7 +297,7 @@ run(int sock, int if_idx, struct Arguments const *args)
 
     error_count = 0;
 
-    if (ntohs(addr.sll_protocol)!=ETHERTYPE_ARP)      continue;
+    if (ntohs(addr.sll_protocol)     !=ETHERTYPE_ARP) continue;
     if (ntohs(msg->data.ea_hdr.ar_op)!=ARPOP_REQUEST) continue;
 
     if (!do_reload) BlackList_softUpdate(&cfg);
@@ -346,37 +306,11 @@ run(int sock, int if_idx, struct Arguments const *args)
       do_reload = false;
     }
 
-    mac = BlackList_getMac(&cfg, *reinterpret_cast(struct in_addr *)(msg->data.arp_tpa), &mac_buffer);
-    if (mac==0) continue;
+    if (args->arp_dir & dirTO)
+      generateJobToIntruder  (worker, &anti_dos, &cfg, msg, &oversize_sleep);
 
-    assert(src_ip!=0);
-    if (!AntiDOS_isOversized(&anti_dos)) oversize_sleep = 1;
-    else {
-      writeMsgTimestamp(2);
-      WRITE_MSGSTR(2, ": Too much requests from too much IPs; last IP was ");
-      writeIP     (2, *src_ip);
-      WRITE_MSGSTR(2, "\n");
-
-      sleep(oversize_sleep);
-      oversize_sleep = MIN(oversize_sleep+1, 10);
-      continue;
-    }
-
-    arp_count = AntiDOS_registerIP(&anti_dos, *src_ip);
-
-    if (isDOS(arp_count)) {
-      writeMsgTimestamp(2);
-      WRITE_MSGSTR(2, ": Too much requests from ");
-      writeIP     (2, *src_ip);
-      WRITE_MSGSTR(2, "; DOS-measurement was ");
-      writeUInt   (2, arp_count);
-      WRITE_MSGSTR(2, "\n");
-
-      continue;
-    }
-
-
-    handleMessage(sock, if_idx, mac, &msg->data);
+    if (args->arp_dir & dirFROM)
+      generateJobFromIntruder(worker, &anti_dos, &cfg, msg, &oversize_sleep);
   }
 }
 
@@ -405,14 +339,15 @@ main(int argc, char *argv[])
   struct Arguments	arguments;
   int			sock;
   int			if_idx;
+  struct Worker		worker;
   
   parseOptions(argc, argv, &arguments);
 
   sock   = generateSocket(arguments.iface, &if_idx);
   daemonize(&arguments);
+  Worker_init(&worker, sock, if_idx);
 
-  signal(SIGCHLD, sigChild);
   signal(SIGHUP,  sigHup);
 
-  run(sock, if_idx, &arguments);
+  run(&worker, &arguments);
 }
