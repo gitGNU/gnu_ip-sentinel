@@ -1,3 +1,4 @@
 TODO:
 =====
-	- write a README
+	- write a README; in the meantime see the ip-sentinel(8) manpage
+	  and the testsuite configfiles under src/testsuite/data/*.lst
