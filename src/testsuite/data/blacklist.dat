@@ -43,7 +43,8 @@
 1.2.3.{15-17}/31		10:10:10:10:10:80
 
 
-## the RANDOM/802.X style MACs
+## the RANDOM/LOCAL/802.X style MACs
 1.2.3.18			RANDOM
 1.2.3.19			802.1d
 1.2.3.20			802.3x
+1.2.3.21			LOCAL
