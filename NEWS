@@ -1,3 +1,16 @@
+Version 0.3
+===========
+	- Minor code-cleanups
+	- Documented and parameterized certain mechanism (anti-DOS,
+	  vector-resizing, sliding random MACs); see src/parameters.h for
+	  details
+	- BUGFIX: fixed broken signal-handling with dietlibc (dietlibc sets
+	  SIG_DFL handler when entering a handler and -- in opposite to
+	  glibc-2.3.1 -- does not restore this value to the handler set with
+	  signal())
+	- BUGFIX: fixed stupid typo in vector-resize code which caused
+	  excessive memory-consumption
+
 Version 0.2
 ===========
 	- build-fixes with RH 6.2
