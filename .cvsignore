@@ -25,4 +25,5 @@ ip-sentinel.spec
 missing
 mkinstalldirs
 stamp-h1
+tmp
 www-sftp.cmds
