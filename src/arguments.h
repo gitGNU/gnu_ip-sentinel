@@ -22,6 +22,16 @@
 #include <stdbool.h>
 #include <net/ethernet.h>
 
+struct TaggedMac
+{
+    enum {mcRANDOM, mcFIXED,
+	  mcLOCAL}		type;
+
+    union {
+	struct ether_addr	ether;
+    }				addr;
+};
+
 struct Arguments
 {
     char const *	ipfile;
@@ -35,12 +45,12 @@ struct Arguments
     char const *	iface;
 
     enum {dirFROM=1, dirTO=2,
-	  dirBOTH=3}		arp_dir;
-    enum {mcRANDOM, mcFIXED}	mac_type;
-    struct ether_addr		mac_addr;
+	  dirBOTH=3}	arp_dir;
+    struct TaggedMac	mac;
+    struct TaggedMac	llmac;
 };
 
-void
-parseOptions(int argc, char *argv[], struct Arguments *options);
+void	parseOptions(int argc, char *argv[], struct Arguments *options);
+void	Arguments_fixupOptions(struct Arguments *options);
 
 #endif	//  H_IPSENTINEL_ARGUMENTS_H
