@@ -1,6 +1,6 @@
 // $Id$    --*- c++ -*--
 
-// Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+// Copyright (C) 2002,2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -109,8 +109,8 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
   if      (result!=0) {}
   else if (ntohl(lhs->mask.s_addr) < ntohl(rhs->mask.s_addr)) result = -1;
   else if (ntohl(lhs->mask.s_addr) > ntohl(rhs->mask.s_addr)) result = +1;
-  else if (ntohl(lhs->ip.s_addr) < ntohl(rhs->ip.s_addr))     result = -1;
-  else if (ntohl(lhs->ip.s_addr) > ntohl(rhs->ip.s_addr))     result = +1;
+  else if (ntohl(lhs->ip.s_addr)   < ntohl(rhs->ip.s_addr))   result = -1;
+  else if (ntohl(lhs->ip.s_addr)   > ntohl(rhs->ip.s_addr))   result = +1;
   else result = lhs->status - rhs->status;
 #endif  
 
@@ -125,11 +125,26 @@ BlackList_init(BlackList *lst, char const *filename)
   Vector_init(&lst->ip_list,  sizeof(struct IPData));
   Vector_init(&lst->net_list, sizeof(struct NetData));
 
-  lst->filename   = filename;
+  lst->filename   = strdup(filename);
   lst->last_mtime = 0;
 
   BlackList_update(lst);
 }
+
+void
+BlackList_free(BlackList *lst)
+{
+  assert(lst!=0);
+
+  free(const_cast(char *)(lst->filename));
+  Vector_free(&lst->ip_list);
+  Vector_free(&lst->net_list);
+
+#ifndef NDEBUG
+  lst->filename = (void *)(0xdeadbeef);
+#endif
+}
+
 
 static bool
 BlackList_parseLine(BlackList *lst, char *start, char const *end, size_t line_nr)
@@ -390,6 +405,8 @@ struct ether_addr const *
 BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct ether_addr *res)
 {
   struct ether_addr const *	result = 0;
+    // 'status' is tied to 'result'; therefore compiler warnings about possible uninitialized usage
+    // can be ignored.
   BlackListStatus		status;
     // C does not allow Vector_begin()/end() functions accepting both const and non-const
     // parameters. To prevent const_cast'ing in every call to these functions, const_cast the
