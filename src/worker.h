@@ -39,6 +39,9 @@ struct Worker
       // the link-level mac-address sent when the arp-request
       // is coming *from* the intruder
     struct TaggedMac	llmac;
+
+      // the action-command
+    char const *	action_cmd;
 };
 
 void	Worker_init(struct Worker *, struct Arguments const *,
