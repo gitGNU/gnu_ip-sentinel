@@ -36,11 +36,13 @@ void *	Vector_search(struct Vector *, void const *key, int (*compar)(const void 
 void	Vector_sort(struct Vector *, int (*compar)(const void *, const void *));
 void *	Vector_pushback(struct Vector *);
 void *	Vector_insert(struct Vector *, void const *key, int (*compar)(const void *, const void *));
-void *	Vector_begin(struct Vector *);
-void *	Vector_end(struct Vector *);
 void	Vector_popback(struct Vector *);
 void	Vector_resize(struct Vector *vec);
 void	Vector_clear(struct Vector *vec);
+static void *	Vector_begin(struct Vector *);
+static void *	Vector_end(struct Vector *);
+static size_t	Vector_count(struct Vector *vec);
 
+#include "vector.ic"
 
 #endif	//  H_IPSENTINEL_VECTOR_H

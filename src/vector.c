@@ -112,18 +112,6 @@ Vector_resize(struct Vector *vec)
     Vector_resizeInternal(vec);
 }
 
-void *
-Vector_begin(struct Vector *vec)
-{
-  return vec->data;
-}
-
-void *
-Vector_end(struct Vector *vec)
-{
-  return static_cast(char *)(vec->data) + (vec->count * vec->elem_size);
-}
-
 void
 Vector_clear(struct Vector *vec)
 {
