@@ -16,9 +16,12 @@ test "$NETWORKING" != "no" || exit 0
 defuser=ip-sentinel
 test -f /etc/sysconfig/ip-sentinel && . /etc/sysconfig/ip-sentinel
 
-RETVAL=0
 prog="ip-sentinel"
 lockfile=/var/lock/subsys/ip-sentinel
+
+addOption() {
+    opt="$opt${2:+$1$2 }"
+}
 
 start () {
 	echo -n $"Starting $prog: "
@@ -29,28 +32,28 @@ start () {
 	fi
 
 	opt=
-	test "$IPS_USER"    && opt="${opt}-u $IPS_USER "
-	test "$IPS_GROUP"   && opt="${opt}-g $IPS_GROUP "
-	test "$IPS_CHROOT"  && opt="${opt}-r $IPS_CHROOT "
-	test "$IPS_IPFILE"  && opt="${opt}-i $IPS_IPFILE "
-	test "$IPS_LOGFILE" && opt="${opt}-i $IPS_LOGFILE "
-	test "$IPS_ERRFILE" && opt="${opt}-i $IPS_ERRFILE "
-	test "$IPS_OPTIONS" && opt="${opt}$OPTIONS"
+	addOption "-u " "$IPS_USER"
+	addOption "-g " "$IPS_GROUP"
+	addOption "-r " "$IPS_CHROOT"
+	addOption "-i " "$IPS_IPFILE"
+	addOption "-l " "$IPS_LOGFILE"
+	addOption "-e " "$IPS_ERRFILE"
+	addOption ""    "$IPS_OPTIONS"
 
 	daemon ip-sentinel ${opt} ${IPS_DEVICE:-eth0}
-	RETVAL=$?
+	ret=$?
 	echo
-	[ $RETVAL -eq 0 ] && touch $lockfile
-	return $RETVAL
+	[ $ret -eq 0 ] && touch $lockfile
+	return $ret
 }
 
 stop () {
 	echo -n $"Stopping $prog: "
 	killproc ip-sentinel
-	RETVAL=$?
+	ret=$?
 	echo
-	[ $RETVAL -eq 0 ] && rm -f $lockfile
-	return $RETVAL
+	[ $ret -eq 0 ] && rm -f $lockfile
+	return $ret
 }
 
 restart () {
@@ -60,19 +63,17 @@ restart () {
 
 # See how we were called.
 case "$1" in
-  start|stop)	$1 ;;
+  start|stop|restart)	$1 ;;
   status)
 	status ip-sentinel
 	;;
-  restart|reload)
+  reload)
 	restart
 	;;
   condrestart)
-	if test -f $lockfile; then
-	    restart
-	fi
+	test ! -f $lockfile || restart
 	;;
   *)
 	echo $"Usage: $0 {start|stop|status|restart|reload|condrestart}"
-	exit 3
+	exit 2
 esac
