@@ -34,7 +34,7 @@ ether_aton_r(const char *asc, struct ether_addr *addr)
 {
   char const	*start;
   size_t	pos = 0;
-  u_int8_t *	res_pos = addr->ether_addr_octet+0;
+  uint8_t *	res_pos = addr->ether_addr_octet+0;
 
   *res_pos = 0;
 
@@ -73,7 +73,7 @@ ether_ntoa(struct ether_addr const *addr)
 {
   static char		buffer[18];
   char *		buf_ptr = buffer;
-  u_int8_t const *	pos = addr->ether_addr_octet+0;
+  uint8_t const *	pos = addr->ether_addr_octet+0;
   
   for (; pos<addr->ether_addr_octet+6; ++pos) {
     char	c = DEC2HEX[*pos>>4];

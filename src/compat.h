@@ -42,13 +42,14 @@ int memcmp(const void *s1, const void *s2, size_t n);
 #ifdef __dietlibc__
 #include <netinet/if_ether.h>
 #include <net/if_arp.h>
+#include <stdint.h>
 
 struct  ether_arp {
         struct  arphdr ea_hdr;          /* fixed-size header */
-        u_int8_t arp_sha[ETH_ALEN];     /* sender hardware address */
-        u_int8_t arp_spa[4];            /* sender protocol address */
-        u_int8_t arp_tha[ETH_ALEN];     /* target hardware address */
-        u_int8_t arp_tpa[4];            /* target protocol address */
+        uint8_t arp_sha[ETH_ALEN];     /* sender hardware address */
+        uint8_t arp_spa[4];            /* sender protocol address */
+        uint8_t arp_tha[ETH_ALEN];     /* target hardware address */
+        uint8_t arp_tpa[4];            /* target protocol address */
 };
 #endif
 
