@@ -425,6 +425,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
   return result;
 }
 
+#ifndef NDEBUG
 void
 BlackList_print(BlackList *lst, int fd)
 {
@@ -471,5 +472,5 @@ BlackList_print(BlackList *lst, int fd)
       WRITE_MSGSTR(fd, "\n");
     }
   }
-  
 }
+#endif
