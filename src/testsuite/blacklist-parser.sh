@@ -26,7 +26,7 @@ function verify()
 
 file ${execfile} | grep -q 'statically linked' || {
     exists ef       && { execprog ef 2>&1 | sed -e '1,2d'; } && verify
-    exists valgrind && execprog valgrind -q && verify
+    exists valgrind && execprog valgrind --tool=memcheck -q && verify
 }
 
 execprog && verify
