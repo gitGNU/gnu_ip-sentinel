@@ -16,6 +16,7 @@ depcomp
 install-sh
 ip-sentinel-*.tar.bz2
 ip-sentinel-*.tar.gz
+ip-sentinel-0.1
 ip-sentinel.spec
 missing
 mkinstalldirs
