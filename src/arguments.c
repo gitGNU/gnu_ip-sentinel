@@ -82,8 +82,8 @@ printHelp(char const *cmd, int fd)
 	       "        [--logfile|-l <FILE>] [--errfile|-e <FILE>]"
 	       " [--user|-u <USER>]\n"
    	       "        [--chroot|-r <DIR>] [--nofork|-n] [--help|-h]\n"
-	       " [--version] <interface>\n\n");
-  WRITE_MSGSTR(fd,
+	       "        [--version] <interface>\n"
+	       "\n"
 	       "      --ipfile|-i <FILE>      read blocked IPs from FILE [" DEFAULT_IPFILE "]\n"
 	       "                              within CHROOT\n"
 	       "      --pidfile|-p <FILE>     write daemon-pid into FILE\n"

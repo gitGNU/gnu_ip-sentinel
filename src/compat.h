@@ -68,8 +68,8 @@ struct  ether_arp {
 
 
 #if defined(__GNUC__)
-#  define UNUSED	__attribute__((unused))
-#  define NORETURN	__attribute__((noreturn))
+#  define UNUSED	__attribute__((__unused__))
+#  define NORETURN	__attribute__((__noreturn__))
 #else
 #  define UNUSED
 #  define NORETURN
