@@ -133,11 +133,12 @@ Worker_fillPacket(struct Worker const *worker,
 {
   ArpMessage * const		msg  = &job->message;
   struct sockaddr_ll * const	addr = &job->address;
-  void const *			dhost_ptr;
   struct ether_addr		shost_ether;
   struct ether_addr const *	shost_ptr;
-  register in_addr_t * const		arp_tpa_ptr = reinterpret_cast(in_addr_t*)(&msg->data.arp_tpa);
+  struct ether_addr const *	dhost_ptr;
+  struct ether_addr const * const	rq_sha_ptr  = reinterpret_cast(struct ether_addr *)(&rq->request.arp_sha);
   register in_addr_t const * const	rq_tpa_ptr  = reinterpret_cast(in_addr_t*)(&rq->request.arp_tpa);
+  register in_addr_t const * const	rq_spa_ptr  = reinterpret_cast(in_addr_t*)(&rq->request.arp_spa);
 
   assert(worker!=0);
   assert(job!=0);
@@ -149,13 +150,11 @@ Worker_fillPacket(struct Worker const *worker,
   switch (rq->type) {
     case jobDST		:
       shost_ptr    = &rq->mac;
-      dhost_ptr    = BCAST_MAC.ether_addr_octet;
-      *arp_tpa_ptr = INADDR_ANY;
+      dhost_ptr    = &BCAST_MAC;
       break;
     case jobSRC		:
       shost_ptr    = 0;
-      dhost_ptr    = rq->request.arp_sha;
-      *arp_tpa_ptr = *rq_tpa_ptr;
+      dhost_ptr    = rq_sha_ptr;
       break;
     default		:
       assert(false);
@@ -181,7 +180,6 @@ Worker_fillPacket(struct Worker const *worker,
   }
 
   assert(shost_ptr!=0);
-  assert(dhost_ptr!=0);
   
   msg->padding[0] = 0x66;
   msg->padding[1] = 0x60;
@@ -196,7 +194,8 @@ Worker_fillPacket(struct Worker const *worker,
 
   memcpy(msg->data.arp_sha, &rq->mac,   sizeof(msg->data.arp_sha));
   memcpy(msg->data.arp_spa, rq_tpa_ptr, sizeof(msg->data.arp_spa));
-  memcpy(msg->data.arp_tha, dhost_ptr,  sizeof(msg->data.arp_tha));
+  memcpy(msg->data.arp_tha, rq_sha_ptr, sizeof(msg->data.arp_tha));
+  memcpy(msg->data.arp_tpa, rq_spa_ptr, sizeof(msg->data.arp_tpa));
 
   msg->header.ether_type  = htons(ETH_P_ARP);
 
