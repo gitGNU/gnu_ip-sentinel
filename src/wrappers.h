@@ -217,6 +217,16 @@ Efork()
 }
 
 /*@unused@*/
+inline static int
+Ebind(int sock, void const *addr, int addrlen)
+{
+  int		res = bind(sock, addr, addrlen);
+  FatalErrnoError(res==-1, 1, "bind()");
+
+  return res;
+}
+
+/*@unused@*/
 inline static /*@null@*//*@only@*/ void *
 Erealloc(/*@only@*//*@out@*//*@null@*/ void *ptr,
          size_t new_size)
