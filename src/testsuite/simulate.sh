@@ -33,7 +33,7 @@ function execprog()
 function verify()
 {
     sed -e "${REPLACE_REGEX}" ${outfile_out} |
-	$DIFF - ${basefile}.out || exit 1
+	$DIFF ${basefile}.out - || exit 1
 }
 
 
