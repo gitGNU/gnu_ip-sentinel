@@ -178,14 +178,17 @@ generateJobToIntruder(struct Worker *worker,
 		      unsigned 
 int *oversize_sleep)
 {
-  struct ether_addr		mac_buffer;
   struct ether_addr const	*mac;
   int				arp_count;
   struct RequestInfo		job;
   struct in_addr const *	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
-  struct in_addr const *	dst_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
+
+  struct BlackListQuery		query = {
+    .ip    = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa),
+    .mac = 0,
+  };
   
-  mac = BlackList_getMac(blacklist, *dst_ip, 0, &mac_buffer);
+  mac = BlackList_getMac(blacklist, &query);
   if (mac==0) return;
   
   assert(src_ip!=0);
@@ -215,9 +218,10 @@ int *oversize_sleep)
   }
 
   memset(&job, 0, sizeof job);
-  job.request = msg->data;
-  job.mac     = *mac;
-  job.type    = jobDST;
+  job.request      = msg->data;
+  job.mac          = *mac;
+  job.type         = jobDST;
+  job.poison_mac.f = false;
 
   Worker_sendJob(worker, &job);
 }
@@ -229,19 +233,21 @@ generateJobFromIntruder(struct Worker *worker,
 			ArpMessage const *const msg,
 			unsigned int *oversize_sleep)
 {
-  struct ether_addr		mac_buffer;
   struct ether_addr const	*mac;
   int				arp_count;
   struct RequestInfo		job;
-  struct in_addr const *	src_ip  = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
   struct in_addr const *	dst_ip  = reinterpret_cast(struct in_addr const *)(msg->data.arp_tpa);
-  struct ether_addr const *	src_mac = reinterpret_cast(struct ether_addr const *)(msg->data.arp_sha);
 
+  struct BlackListQuery		query = {
+    .ip    = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa),
+    .mac   = reinterpret_cast(struct ether_addr const *)(msg->data.arp_sha),
+  };
+    
     // Ignore 0.0.0.0 since it is used for duplicate address detection and/or
     // by DHCPDISCOVER
-  if (src_ip->s_addr==0) return;
+  if (query.ip->s_addr==0) return;
   
-  mac = BlackList_getMac(blacklist, *src_ip, src_mac, &mac_buffer);
+  mac = BlackList_getMac(blacklist, &query);
   if (mac==0) return;
   
   assert(dst_ip!=0);
@@ -257,12 +263,12 @@ generateJobFromIntruder(struct Worker *worker,
   }
 
   *oversize_sleep = 1;
-  arp_count = AntiDOS_registerIP(anti_dos, *src_ip);
+  arp_count = AntiDOS_registerIP(anti_dos, *query.ip);
 
   if (isDOS(arp_count)) {
     writeMsgTimestamp(2);
     WRITE_MSGSTR(2, ": Too much requests from intruder ");
-    writeIP     (2, *src_ip);
+    writeIP     (2, *query.ip);
     WRITE_MSGSTR(2, "; DOS-measurement was ");
     writeUInt   (2, arp_count);
     WRITE_MSGSTR(2, ", current dst ");
@@ -275,6 +281,13 @@ generateJobFromIntruder(struct Worker *worker,
   job.request = msg->data;
   job.mac     = *mac;
   job.type    = jobSRC;
+
+  if (query.poison_mac) {
+    job.poison_mac.f = true;
+    job.poison_mac.v = *query.poison_mac;
+  }
+  else
+    job.poison_mac.f = false;
 
   Worker_sendJob(worker, &job);
 }

@@ -74,10 +74,15 @@ int main(int argc, char *argv[])
     int			res_i = fscanf(ip_file,     "%s\n", ip_str);
     int			res_r = fscanf(result_file, "%s\n", mac_str);
     struct ether_addr	atmac;
-    struct ether_addr	result, exp_result;
+    struct ether_addr	exp_result;
     struct in_addr	inp;
     bool		is_ok = 1;
     char *		at_pos;
+    struct ether_addr const	*result;
+    struct BlackListQuery	query = {
+      .ip  = &inp,
+      .mac = &atmac,
+    };
 
     if (ip_str[0]=='#' || ip_str[0]=='\n' || ip_str[0]=='\0') continue;
     
@@ -110,13 +115,15 @@ int main(int argc, char *argv[])
     }
 
     printf("%-15s\t", ip_str);
-    if (BlackList_getMac(&lst, inp, &atmac, &result)) {
+    if ((result=BlackList_getMac(&lst, &query))!=0) {
       char		buffer[128];
-      sprintf(buffer, "%s", ether_ntoa(&result));
+      sprintf(buffer, "%s", ether_ntoa(result));
       if (mac_str[0]=='-') is_ok = 0;
       else if (mac_str[0]!='R') {
 	sprintf(buffer+strlen(buffer), "/%s", ether_ntoa(&exp_result));
-	is_ok = is_ok && (memcmp(&result, &exp_result, sizeof result)==0);
+	is_ok = is_ok && (memcmp(result, &exp_result, sizeof *result)==0);
+	if (query.poison_mac)
+	  sprintf(buffer+strlen(buffer), "|%s", ether_ntoa(query.poison_mac));
       }
       printf("%-35s\t", buffer);
     }

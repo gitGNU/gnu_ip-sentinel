@@ -22,7 +22,10 @@
 #include "vector.h"
 
 #include <netinet/in.h>
+#include <net/ethernet.h>
 #include <time.h>
+#include <stdbool.h>
+#include <compat.h>
 
 struct Arguments;
 
@@ -35,9 +38,17 @@ typedef struct {
     struct Arguments const *	args_;
 } BlackList;
 
+struct BlackListQuery {
+    struct ether_addr			result_buffer_;
+    struct in_addr const * const	ip;		/* in */
+    struct ether_addr const * const	mac;		/* in */
+    struct ether_addr const *		poison_mac;	/* out */
+};
+    
+    
+
 struct ether_addr const *
-BlackList_getMac(BlackList const *lst, struct in_addr const ip,
-		 struct ether_addr const *mac, struct ether_addr *res);
+BlackList_getMac(BlackList const *lst, struct BlackListQuery *query);
 
 void		BlackList_init(BlackList *lst, struct Arguments const *args);
 void		BlackList_free(BlackList *);

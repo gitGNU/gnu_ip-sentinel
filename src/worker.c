@@ -49,9 +49,10 @@ Worker_init(struct Worker *worker, struct Arguments const *args,
   
   assert(worker!=0);
 
-  worker->sock   = sock;
-  worker->if_idx = if_idx;
-  worker->llmac  = args->llmac;
+  worker->sock      = sock;
+  worker->if_idx    = if_idx;
+  worker->llmac     = args->llmac;
+  worker->do_poison = args->do_poison;
 
   Epipe(fds);
   pid = Efork();
@@ -258,6 +259,31 @@ Worker_printJob(struct RequestInfo const *rq)
 #endif
 }
 
+static bool
+Worker_poisonJob(struct ScheduleInfo *job, struct RequestInfo const *rq)
+{
+  assert(job!=0);
+  assert(rq!=0);
+
+    // poison the job on jobSRC requests only
+  if (rq->type==jobSRC) {
+    struct ether_addr const *	sha;
+
+    if (rq->poison_mac.f) sha = &rq->poison_mac.v;
+    else                  sha = &rq->mac;
+    
+    memcpy(job->message.header.ether_dhost, &BCAST_MAC,                 sizeof(job->message.header.ether_dhost));
+    memcpy(job->message.data.arp_sha,       sha,                        sizeof(job->message.data.arp_sha));
+    memcpy(job->message.data.arp_spa,       job->message.data.arp_tpa,  sizeof(job->message.data.arp_spa));
+    memcpy(job->message.data.arp_tha,       &BCAST_MAC,                 sizeof(job->message.data.arp_tha));
+    memset(job->message.data.arp_tpa,       0,                          sizeof(job->message.data.arp_tpa));
+
+    return true;
+  }
+
+  return false;
+}
+
 static void ALWAYSINLINE
 Worker_scheduleNewJob(struct Worker *worker, struct PriorityQueue *queue, time_t now)
 {
@@ -295,6 +321,17 @@ Worker_scheduleNewJob(struct Worker *worker, struct PriorityQueue *queue, time_t
 
   job.schedule_time = now+5;
   PriorityQueue_insert(queue, &job);
+
+  job.schedule_time = now+60;
+  PriorityQueue_insert(queue, &job);
+  
+  if (worker->do_poison && Worker_poisonJob(&job, &request)) {
+    job.schedule_time = now+5;
+    PriorityQueue_insert(queue, &job);
+
+    job.schedule_time = now+60;
+    PriorityQueue_insert(queue, &job);
+  }
 
   error_count = 0;
 }
@@ -396,4 +433,12 @@ Worker_debugFillPacket(struct Worker const *worker,
 {
   Worker_fillPacket(worker, job, rq);
 }
+
+bool
+Worker_debugPoisonJob(struct ScheduleInfo *job,
+		      struct RequestInfo const *rq)
+{
+  return Worker_poisonJob(job, rq);
+}
+
 #endif

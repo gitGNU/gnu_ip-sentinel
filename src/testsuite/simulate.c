@@ -87,7 +87,6 @@ int main(int argc, char *argv[])
   struct Arguments		arguments;
   struct Worker			worker;
   BlackList			cfg;
-  struct ether_addr		mac_buffer;
   struct ether_addr const	*mac;
   char				spa[64], sha[64], tpa[64], tha[64];
 
@@ -114,6 +113,16 @@ int main(int argc, char *argv[])
       struct RequestInfo	rq;
       struct ScheduleInfo	job;
       struct ether_arp * const	arp = &rq.request;
+
+      struct BlackListQuery	query_dst = {
+	.ip  = (struct in_addr const *)arp->arp_tpa,
+	.mac = 0
+      };
+
+      struct BlackListQuery	query_src = {
+	.ip  = (struct in_addr const *)arp->arp_spa,
+	.mac = &rq.request.arp_sha,
+      };
       
       switch (state) {
 	case stNORMAL	:  break;
@@ -132,26 +141,38 @@ int main(int argc, char *argv[])
       printRequest(FD, spa, sha, tpa, tha);
 
       WRITE_MSGSTR(FD, "  DST: ");
-      mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_tpa, 0, &mac_buffer);
+      mac = BlackList_getMac(&cfg, &query_dst);
       if (mac==0) WRITE_MSGSTR(FD, "MISS\n");
       else {
-	rq.mac = *mac;
+	rq.mac  = *mac;
 	rq.type = jobDST;
 
 	Worker_debugFillPacket(&worker, &job, &rq);
 	Worker_printScheduleInfo(FD, &job);
+
+	assert(!Worker_debugPoisonJob(&job, &rq));
       }
 
       WRITE_MSGSTR(FD, "  SRC: ");
-      mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_spa, &arp->arp_sha, &mac_buffer);
-      if (((struct in_addr *)arp->arp_spa)->s_addr==0) WRITE_MSGSTR(FD, "MISS (DAD)\n");
+      mac = BlackList_getMac(&cfg, &query_src);
+      if (query_src.ip->s_addr==0) WRITE_MSGSTR(FD, "MISS (DAD)\n");
       else if (mac==0) WRITE_MSGSTR(FD, "MISS\n");
       else {
-	rq.mac = *mac;
+	rq.mac  = *mac;
 	rq.type = jobSRC;
+	if (query_src.poison_mac) {
+	  rq.poison_mac.f = true;
+	  rq.poison_mac.v = *query_src.poison_mac;
+	}
+	else
+	  rq.poison_mac.f = false;
 
 	Worker_debugFillPacket(&worker, &job, &rq);
 	Worker_printScheduleInfo(FD, &job);
+	
+	WRITE_MSGSTR(FD, "  POI: ");
+	if (Worker_debugPoisonJob(&job, &rq)) Worker_printScheduleInfo(FD, &job);
+	else assert(false);
       }
 
       WRITE_MSGSTR(FD, "\n");

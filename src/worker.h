@@ -26,7 +26,11 @@ struct RequestInfo;
 struct Worker
 {
       // the main -> worker pipe
-    int		fd;
+    int			fd;
+
+      // true iff packages coming *from* intruders shall result in a poisoning
+      // of the intruders ip
+    bool		do_poison;
     
       // the SOCKRAW socket
     int			sock;
@@ -49,6 +53,8 @@ void	Worker_printScheduleInfo(int fd, struct ScheduleInfo const *job);
 void	Worker_debugFillPacket(struct Worker const *worker,
 			       struct ScheduleInfo *job,
 			       struct RequestInfo const *rq);
+bool	Worker_debugPoisonJob(struct ScheduleInfo *job,
+			      struct RequestInfo const *rq);
 #endif
 
 #endif	//  H_IPSENTINEL_WORKER_H

@@ -33,6 +33,10 @@ struct RequestInfo
     struct ether_arp		request;
     struct ether_addr		mac;
     enum { jobSRC, jobDST }	type;
+    struct {
+	bool			f;
+	struct ether_addr	v;
+    }				poison_mac;
 };
 
 #endif	//  H_IPSENTINEL_JOBINFO_H

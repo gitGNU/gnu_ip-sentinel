@@ -701,10 +701,9 @@ BlackList_compareAtMac(struct AtMac const * lhs, struct ether_addr const *rhs)
 
 struct ether_addr const *
 BlackList_getMac(BlackList const *lst_const,
-		 struct in_addr const ip, struct ether_addr const *mac,
-		 struct ether_addr *res)
+		 struct BlackListQuery *q)
 {
-  struct ether_addr const *	result = 0;
+  struct ether_addr *		result = 0;
     // 'status' is tied to 'result'; therefore compiler warnings about possible uninitialized usage
     // can be ignored.
   BlackListStatus		status;
@@ -712,15 +711,21 @@ BlackList_getMac(BlackList const *lst_const,
     // parameters. To prevent const_cast'ing in every call to these functions, const_cast the
     // lst-object here...
   BlackList *			lst = const_cast(BlackList *)(lst_const);
+
+    // just a short-cut...
+  register struct ether_addr * const	buf = &q->result_buffer_;
   
   assert(lst!=0);
 
   {
-    struct IPData const	*data = Vector_search(&lst->ip_list, &ip, IPData_searchCompare);
-    if (data!=0 && BlackList_compareAtMac(&data->atmac, mac)) {
+    struct IPData const	*data = Vector_search(&lst->ip_list,
+					      q->ip, IPData_searchCompare);
+    if (data!=0 && BlackList_compareAtMac(&data->atmac, q->mac)) {
       status = data->status;
-      *res   = data->mac;
-      result = res;
+      *buf   = data->mac;
+      result = buf;
+
+      if (data->atmac.status==amNEGATIVE) q->poison_mac = &data->atmac.mac;
     }
   }
 
@@ -728,11 +733,13 @@ BlackList_getMac(BlackList const *lst_const,
     struct NetData const *	data    = Vector_begin(&lst->net_list);
     struct NetData const *	end_ptr = Vector_end(&lst->net_list);
     for (; data!=end_ptr; ++data) {
-      if ((ip.s_addr & data->mask.s_addr) == data->ip.s_addr &&
-	  BlackList_compareAtMac(&data->atmac, mac)) {
+      if ((q->ip->s_addr & data->mask.s_addr) == data->ip.s_addr &&
+	  BlackList_compareAtMac(&data->atmac, q->mac)) {
 	status = data->status;
-	*res   = data->mac;
-	result = res;
+	*buf   = data->mac;
+	result = buf;
+
+	if (data->atmac.status==amNEGATIVE) q->poison_mac = &data->atmac.mac;
 	break;
       }
     }
@@ -742,7 +749,10 @@ BlackList_getMac(BlackList const *lst_const,
     switch (status) {
       case blIGNORE	:  result = 0;
       case blSET	:  break;
-      case blRAND	:  Util_setRandomMac(res); break;
+      case blRAND	:
+	assert(result==&q->result_buffer_);
+	Util_setRandomMac(result);
+	break;
       default		:  assert(false); result = 0; break;
     }
   }
