@@ -75,6 +75,10 @@ tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/simulate-test.out		\
 				   testsuite/data/simulate-test.cfg		\
 				   testsuite/data/simulate-test.inp		\
+				   testsuite/data/simulate-test1.cmd		\
+				   testsuite/data/simulate-test1.out		\
+				   testsuite/data/simulate-test1.cfg		\
+				   testsuite/data/simulate-test1.inp		\
 				   testsuite/data/simulate-L-L.cmd		\
 				   testsuite/data/simulate-L-L.out		\
 				   testsuite/data/simulate-L-R.cmd		\
@@ -93,6 +97,7 @@ generated_SCRPTS		=  testsuite/blacklist-check1.sh		\
 				   testsuite/prioqueue-check2.sh		\
 				   testsuite/prioqueue-check3.sh		\
 				   testsuite/simulate-test.sh			\
+				   testsuite/simulate-test1.sh			\
 				   testsuite/simulate-L-L.sh			\
 				   testsuite/simulate-L-R.sh			\
 				   testsuite/simulate-L-S.sh			\
