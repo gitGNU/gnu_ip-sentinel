@@ -1,6 +1,7 @@
+# USER=ip-sentinel
+# GROUP=
 # CHROOT=/var/lib/ip-sentinel
 # IPFILE=ips.cfg
-# USER=ip-sentinel
 # LOGFILE=/var/log/ip-sentinel.out
 # ERRFILE=/var/log/ip-sentinel.err
 # OPTIONS=
@@ -9,4 +10,7 @@
 
 ## Assign to yes if running a dietlibc compiled version of ip-sentinel
 ## on a system using remote NSS for passwd-lookups (e.g. LDAP, NIS).
+##
+## When using a group which is not the effective group of the user,
+## you will have to assign the numeric gid of this group to GROUP.
 # NEEDS_NUMERIC_UID=
