@@ -68,9 +68,13 @@ struct  ether_arp {
 
 
 #if defined(__GNUC__)
-#  define UNUSED	__attribute__((__unused__))
-#  define NORETURN	__attribute__((__noreturn__))
-#  define ALWAYSINLINE	__attribute__((__always_inline__))
+#  define UNUSED		__attribute__((__unused__))
+#  define NORETURN		__attribute__((__noreturn__))
+#  if __GNUC__ >= 3
+#    define ALWAYSINLINE	__attribute__((__always_inline__))
+#  else
+#    define ALWAYSINLINE
+#  endif
 #else
 #  define UNUSED
 #  define NORETURN
