@@ -33,8 +33,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-volatile sig_atomic_t		child_count;
-
+struct ether_addr	local_mac_address = { { 127,0,0,1,0,0 } };
 
 int main(int argc, char *argv[])
 {
@@ -42,7 +41,7 @@ int main(int argc, char *argv[])
   FILE *		ip_file;
   FILE *		result_file;
   struct Arguments	args = {
-    .mac_type  = mcRANDOM,
+    .mac = { .type  = mcRANDOM },
     .ipfile    = argv[2]
   };
 
