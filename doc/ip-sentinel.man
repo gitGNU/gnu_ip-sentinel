@@ -139,8 +139,9 @@ ip-sentinel can answer both requests asking for an intruder's address,
 and requests coming from an intruder asking for official
 addresses. This parameter specifies which requests shall be
 answered. Possible values are \fIFROM\fR (requests from intruders),
-\fITO\fR (requests to intruders) and \fIBOTH\fR. The default value is
-\fITO\fR.
+\fITO\fR (requests to intruders) and \fIBOTH\fR. The current default
+value is \fITO\fR, but will probably change to \fIBOTH\fR in future
+versions.
 .TP
 .BR \-\-mac\ \fImac
 Use \fImac\fR as the default faked mac-address; see below for possible
@@ -151,8 +152,9 @@ questionable IP. The default value is \fIRANDOM\fR.
 Specifies the mac-address which will be used in the link-level headers
 when answering requests \fBfrom\fR intruders. Additionally to the
 values described below, ip-sentinel understands the \fISAME\fR string,
-which means that the address from the ARP-header will be used. The
-default is \fILOCAL\fR.
+which means that the address from the ARP-header will be used. When
+not using the \fIFROM\fR or \fIBOTH\fR directions, the assigned value
+will not have any effect. The default is \fILOCAL\fR.
 .TP
 .BR \-\-help | \-h
 Prints help message and exits.
@@ -248,7 +250,8 @@ expands to 01:80:C2:00:00:00 which is the "Bridge Group Address".
 .TP
 .BR 802.3x
 expands to 01:80:C2:00:00:01 which is the "IEEE Std. 802.3x Full
-Duplex PAUSE operation".
+Duplex PAUSE operation". This MAC address will be blocked by a lot of
+switches and will probably become the default in future versions.
 .\"
 .PP
 The \fI802.*\fR addresses are having a special meaning for some
