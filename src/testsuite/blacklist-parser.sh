@@ -1,5 +1,6 @@
 #! /bin/bash
 
+: ${srcdir=.}
 . ${srcdir}/testsuite/functions
 
 outfile_err=`mktemp /tmp/ip-sentinel.check.XXXXXX`
