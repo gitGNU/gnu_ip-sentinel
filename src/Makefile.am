@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #  
 
-sbin_PROGRAMS		=  ip-sentinel
+sbin_PROGRAMS			=  ip-sentinel
 
 if ENSC_NEED_ETHER
 ether_SRCS			=  ether.c
@@ -31,7 +31,7 @@ lib_SRCS			=  arguments.c util.c blacklist.c 	\
 
 EXTRA_ip_sentinel_SOURCES	=  ether.c
 ip_sentinel_SOURCES		=  ip-sentinel.c $(lib_SRCS)
-ip_sentinel_LDADD		=  libensc_vector.a
+ip_sentinel_LDADD		=  $(LIBENSCVECTOR)
 
 AM_CPPFLAGS			=  -D_GNU_SOURCE
 
@@ -40,7 +40,7 @@ noinst_HEADERS			=  antidos.h arguments.h arpmessage.h	\
 				   parameters.h util.h			\
 				   worker.h jobinfo.h			\
 				   wrappers.h fmt.h			\
-				   prioqueue.h prioqueue.ic \
+				   prioqueue.h prioqueue.ic		\
 				   $(ENSC_VECTOR_HDRS) $(ENSC_VECTOR_XHDRS)
 
 noinst_LIBRARIES		=  $(ENSC_VECTOR_LIBS)
@@ -51,7 +51,10 @@ CLEANFILES			=  $(testsuite_CLEANFILES)
 check_PROGRAMS			=  $(ENSC_VECTOR_TESTSUITE_PRGS)
 TESTS				=  $(ENSC_VECTOR_TESTSUITE_TSTS)
 
+
+
 include $(top_srcdir)/m4/diet.am
 include $(srcdir)/testsuite/Makefile-files
 include $(srcdir)/ensc_vector/Makefile-files
 include $(srcdir)/ensc_fmt/Makefile-files
+include $(top_srcdir)/m4/libsel.am
