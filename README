@@ -1,5 +1,5 @@
-Release notes for IP Sentinel, version 0.8
-==========================================
+Release notes for IP Sentinel, version 0.11
+===========================================
 
 In a perfect environment there are managed switches with one host per
 port. Unfortunately, in the reality there are often unmanaged switches,
@@ -195,6 +195,7 @@ EXAMPLES
 				## MAC there
    10.0.0.1@a:a:a:a:a:a		## two tagged src-ip addresses
    10.0.0.2@!1:1:1:1:1:1
+   *@1:1:1:2:2:2                ## host with a certain MAC on every IP
 
    When "IP Sentinel" receives a request for 169.254.1.2 or 192.168.0.23,
    a reply like '... is-at de:ad:be:ef:0:29' will be created. IPs like
@@ -210,6 +211,8 @@ EXAMPLES
    generate a "10.0.0.2 is at 1:1:1:1:1:1" arp-reply to a broad
    address.
 
+   The host with the MAC 1:1:1:2:2:2 will be blocked everytime; which
+   might be wanted because it spreads viruses e.g.
 
    'src/testsuite/data' contains other sample configfiles and expected
    result.
@@ -222,5 +225,3 @@ TODO
 - check if it is cheaper to have the 70 bytes of data or a pointer to
   this data in the scheduler-heap; pointers have hidden costs for
   memory-management and destroy L1/L2 caching
-- find more reasonable defaults; I am tending to set them to
-  '--poision --mac 802.3x --direction BOTH'
