@@ -1,0 +1,27 @@
+#! /bin/bash
+
+PATH=$PATH:/sbin:/usr/sbin
+defuser=ip-sentinel
+
+test -f /etc/sysconfig/ip-sentinel && . /etc/sysconfig/ip-sentinel
+
+addOption() {
+    opt="$opt${2:+$1$2 }"
+}
+
+if test x"${IPS_NEEDS_NUMERIC_UID}" = xyes; then
+    test -z "$IPS_GROUP" && \
+    x=`id -g ${IPS_USER:-$defuser} 2>/dev/null` && IPS_GROUP="$x"
+    x=`id -u ${IPS_USER:-$defuser} 2>/dev/null` && IPS_USER="$x"
+fi
+
+opt=
+addOption "-u " "$IPS_USER"
+addOption "-g " "$IPS_GROUP"
+addOption "-r " "$IPS_CHROOT"
+addOption "-i " "$IPS_IPFILE"
+addOption "-l " "$IPS_LOGFILE"
+addOption "-e " "$IPS_ERRFILE"
+addOption ""    "$IPS_OPTIONS"
+
+exec ip-sentinel $opt "$@" -n ${IPS_DEVICE:-eth0}
