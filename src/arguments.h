@@ -28,6 +28,7 @@ typedef struct
     char const *	logfile;
     char const *	errfile;
     char const *	user;
+    char const *	group;
     bool		do_fork;
     char const *	chroot;
     char const *	iface;

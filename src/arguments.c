@@ -48,6 +48,10 @@
 #  define DEFAULT_USER			SENTINEL_USER
 #endif
 
+#ifndef DEFAULT_GROUP
+#  define DEFAULT_GROUP			SENTINEL_USER
+#endif
+
 #ifndef DEFAULT_CHROOT
 #  define DEFAULT_CHROOT		0
 #endif
@@ -60,6 +64,7 @@ cmdline_options[] = {
   { "logfile", required_argument, 0, 'l' },
   { "errfile", required_argument, 0, 'e' },
   { "user",    required_argument, 0, 'u' },
+  { "group",   required_argument, 0, 'g' },
   { "nofork",  no_argument,       0, 'n' },
   { "chroot",  required_argument, 0, 'r' },
   { "help",    no_argument,       0, 'h' },
@@ -81,15 +86,19 @@ printHelp(char const *cmd, int fd)
   WRITE_MSGSTR(fd,
 	       "      --ipfile|-i <FILE>      read blocked IPs from FILE [" DEFAULT_IPFILE "]\n"
 	       "                              within CHROOT\n"
-	       "      --pidfile|-p <FILE>     write daemon-pid into FILE [" DEFAULT_PIDFILE "]\n"
-	       "      --logfile|-l <FILE>     log activities into FILE [" DEFAULT_LOGFILE "]\n"
-	       "      --errfile|-e <FILE>     log errors into FILE [" DEFAULT_ERRFILE "]\n"
+	       "      --pidfile|-p <FILE>     write daemon-pid into FILE\n"
+	       "                              [" DEFAULT_PIDFILE "]\n"
+	       "      --logfile|-l <FILE>     log activities into FILE\n"
+	       "                              [" DEFAULT_LOGFILE "]\n"
+	       "      --errfile|-e <FILE>     log errors into FILE\n"
+	       "                              [" DEFAULT_ERRFILE "]\n"
 	       "      --user|-u <USER>        run as user USER [" DEFAULT_USER "]\n"
+	       "      --group|-g <GROUP>      run as group GROUP [gid of user]\n"
 	       "      --chroot|-r <DIR>       go into chroot-jail at DIR [<HOME>]\n"
 	       "      --nofork|-n             do not fork a daemon-process\n"
 	       "      --help|-h               display this text and exit\n"
 	       "      --version               print version and exit\n"
-	       "      interface               ethernet-interface where to listen"
+	       "      interface               ethernet-interface where to listen\n"
 	       "                              on ARP-requests\n"
 	       "\nPlease report errors to <" PACKAGE_BUGREPORT ">\n");
 }
@@ -114,11 +123,12 @@ parseOptions(int argc, char *argv[], Arguments *options)
   options->logfile  = DEFAULT_LOGFILE;
   options->errfile  = DEFAULT_ERRFILE;
   options->user     = DEFAULT_USER;
+  options->group    = 0;
   options->do_fork  = true;
   options->chroot   = 0;
 
   while (1) {
-    int	c = getopt_long(argc, argv, "hi:p:l:e:u:nr:", cmdline_options, 0);
+    int	c = getopt_long(argc, argv, "hi:p:l:e:u:g:nr:", cmdline_options, 0);
     if (c==-1) break;
 
     switch (c) {
@@ -128,6 +138,7 @@ parseOptions(int argc, char *argv[], Arguments *options)
       case 'l'	:  options->logfile  = optarg; break;
       case 'e'	:  options->errfile  = optarg; break;
       case 'u'	:  options->user     = optarg; break;
+      case 'g'	:  options->group    = optarg; break;
       case 'n'	:  options->do_fork  = false;  break;
       case 'r'	:  options->chroot   = optarg; break;
       case 'v'	:  printVersion(1); exit(0);    break;
