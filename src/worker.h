@@ -19,6 +19,8 @@
 #ifndef H_IPSENTINEL_WORKER_H
 #define H_IPSENTINEL_WORKER_H
 
+#include "arguments.h"
+
 struct RequestInfo;
 
 struct Worker
@@ -27,14 +29,26 @@ struct Worker
     int		fd;
     
       // the SOCKRAW socket
-    int		sock;
+    int			sock;
       // the if-idx of the SOCKRAW socket
-    int		if_idx;
+    int			if_idx;
+      // the link-level mac-address sent when the arp-request
+      // is coming *from* the intruder
+    struct TaggedMac	llmac;
 };
 
-void	Worker_init(struct Worker *, int sock, int if_idx);
+void	Worker_init(struct Worker *, struct Arguments const *,
+		    int sock, int if_idx);
 void	Worker_free(struct Worker *);
-
 void	Worker_sendJob(struct Worker *, struct RequestInfo const *);
+
+#ifdef ENSC_TESTSUITE
+struct ScheduleInfo;
+
+void	Worker_printScheduleInfo(int fd, struct ScheduleInfo const *job);
+void	Worker_debugFillPacket(struct Worker const *worker,
+			       struct ScheduleInfo *job,
+			       struct RequestInfo const *rq);
+#endif
 
 #endif	//  H_IPSENTINEL_WORKER_H
