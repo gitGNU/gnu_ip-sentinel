@@ -121,6 +121,8 @@ NetData_sortCompare(void const *lhs_v, void const *rhs_v)
   assert(lhs!=0 && rhs!=0);
   
   result = -getBitCount(lhs->mask.s_addr) + getBitCount(rhs->mask.s_addr);
+  if (result==0)
+    result = -lhs->v.atmac.status + rhs->v.atmac.status;
 
 #if ENSC_TESTSUITE
     // When being in testsuite-mode compare the network-data in a more deterministic way. Else,
