@@ -328,7 +328,7 @@ BlackList_softUpdate(BlackList *lst)
   
   if (stat(lst->filename, &status)==-1) {
     ++error_count;
-    perror("open()");
+    perror("stat()");
   }
   else if (lst->last_mtime != status.st_mtime) {
     
@@ -338,7 +338,10 @@ BlackList_softUpdate(BlackList *lst)
     WRITE_MSGSTR(1, "\n");
 
     fd = open(lst->filename, O_RDONLY);
-    if (fd==-1) ++error_count;
+    if (fd==-1) {
+      ++error_count;
+      perror("open()");
+    }
   }
 
   if (fd!=-1) {
@@ -352,6 +355,8 @@ BlackList_softUpdate(BlackList *lst)
       error_count     = 0;
     }
   }
+
+  close(fd);
   
   if (error_count>0) {
     if (error_count>MAX_ERRORS) {
