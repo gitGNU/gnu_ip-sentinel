@@ -66,6 +66,7 @@ Worker_init(struct Worker *worker, struct Arguments const *args,
   if (pid==0) {
     Eclose(fds[1]);
     worker->fd = fds[0];
+    Esignal(SIGCHLD, SIG_IGN);	// avoid zombies
     Worker_run(worker);
     close(worker->fd);
     exit(1);	// worker never exits
@@ -243,11 +244,13 @@ callAction(char const * const desc[8])
 
   switch (pid=fork()) {
     case -1	:  perror("fork()"); break;
-    case 0	:  break;
-    default	:
+    case 0	:
+      Esignal(SIGCHLD, SIG_DFL);	// restore default SIGCHLD handler
       execv(desc[0], const_cast(char * const *)(desc));
       perror("execl()");
       exit(1);
+      break;
+    default	:  break;
   }
 }
 
@@ -402,8 +405,6 @@ Worker_run(struct Worker *worker)
     FD_ZERO(&read_set);
     FD_SET(worker->fd, &read_set);
 
-    while (waitpid(-1, 0, WNOHANG)>0) {}
-    
     if (select(worker->fd+1, &read_set, 0,0, time_ptr)==-1) {
       ++error_count;
       if (error_count>MAX_ERRORS) {
