@@ -1,5 +1,6 @@
 ._*-up-to-date
 .gdb_history
+.www-timestamp
 COPYING
 ChangeLog
 INSTALL
@@ -17,7 +18,9 @@ install-sh
 ip-sentinel-*.tar.bz2
 ip-sentinel-*.tar.gz
 ip-sentinel-0.1
+ip-sentinel-*.asc
 ip-sentinel.spec
 missing
 mkinstalldirs
 stamp-h1
+www-sftp.cmds
