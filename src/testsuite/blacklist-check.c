@@ -120,10 +120,13 @@ int main(int argc, char *argv[])
       sprintf(buffer, "%s", ether_ntoa(result));
       if (mac_str[0]=='-') is_ok = 0;
       else if (mac_str[0]!='R') {
-	sprintf(buffer+strlen(buffer), "/%s", ether_ntoa(&exp_result));
+	strcat(buffer, "/");
+	strcat(buffer, ether_ntoa(&exp_result));
 	is_ok = is_ok && (memcmp(result, &exp_result, sizeof *result)==0);
-	if (query.poison_mac)
-	  sprintf(buffer+strlen(buffer), "|%s", ether_ntoa(query.poison_mac));
+	if (query.poison_mac) {
+	  strcat(buffer, "|");
+	  strcat(buffer, ether_ntoa(query.poison_mac));
+	}
       }
       printf("%-35s\t", buffer);
     }
