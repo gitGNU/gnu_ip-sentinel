@@ -17,13 +17,19 @@
 #  
 
 contrib_FILES		=  contrib/ip-sentinel.init		\
-			   contrib/ip-sentinel.sysconfig
+			   contrib/ip-sentinel.sysconfig	\
+			   contrib/ip-sentinel-run
 
 install-contrib:	$(contrib_FILES)
-			$(mkinstalldirs) $(DESTDIR)/etc/{init.d,sysconfig}
+			$(mkinstalldirs) $(DESTDIR)/etc/{init.d,sysconfig,minit/services/ip-sentinel}
 			$(INSTALL_SCRIPT) contrib/ip-sentinel.init      $(DESTDIR)/etc/init.d/ip-sentinel
 			$(INSTALL_DATA)   contrib/ip-sentinel.sysconfig $(DESTDIR)/etc/sysconfig/ip-sentinel
 
+			$(INSTALL_SCRIPT) contrib/ip-sentinel-run	$(DESTDIR)/etc/minit/services/ip-sentinel/run
+			touch $(DESTDIR)/etc/minit/services/ip-sentinel/respawn
+
 uninstall-contrib:
+			rm -f $(DESTDIR)/etc/minit/services/ip-sentinel/run
+			rm -f $(DESTDIR)/etc/minit/services/ip-sentinel/respawn
 			rm -f $(DESTDIR)/etc/init.d/ip-sentinel   
 			rm -f $(DESTDIR)/etc/sysconfig/ip-sentinel
