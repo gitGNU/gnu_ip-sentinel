@@ -63,6 +63,7 @@
 #define OPTION_MAC			1024
 #define OPTION_LLMAC			1025
 #define OPTION_DIRECTION		1026
+#define OPTION_POISON			1027
 
 static struct option
 cmdline_options[] = {
@@ -79,6 +80,7 @@ cmdline_options[] = {
   { "mac",       required_argument, 0, OPTION_MAC },
   { "llmac",     required_argument, 0, OPTION_LLMAC },
   { "direction", required_argument, 0, OPTION_DIRECTION },
+  { "poison",    no_argument,       0, OPTION_POISON },
   { 0, 0, 0, 0 }
 };
 
@@ -117,6 +119,9 @@ printHelp(char const *cmd, int fd)
 	       "      --direction <DIR>       answer arp-requests going into the specified\n"
 	       "                              direction (relative to the intruder) only.\n"
 	       "                              Valid values are 'FROM', 'TO' and 'BOTH'. [TO]\n"
+	       "      --poison                generate faked ARP-answers for an intruder's ip\n"
+	       "                              address when *he* sends a request. Works only\n"
+	       "                              in combination with '--direction FROM|BOTH'.\n"
 	       "      --help|-h               display this text and exit\n"
 	       "      --version               print version and exit\n"
 	       "      interface               ethernet-interface where to listen\n"
@@ -177,6 +182,7 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
   options->arp_dir  = dirTO;
   options->mac.type = mcRANDOM;
   options->llmac.type = mcLOCAL;
+  options->do_poison  = false;
 
   while (1) {
     int	c = getopt_long(argc, argv, "hi:p:l:e:u:g:nr:", cmdline_options, 0);
@@ -196,6 +202,7 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
       case OPTION_MAC		:  Arguments_parseMac(optarg, &options->mac,  false); break;
       case OPTION_LLMAC		:  Arguments_parseMac(optarg, &options->llmac, true); break;
       case OPTION_DIRECTION	:  Arguments_parseDirection(optarg, options);         break;
+      case OPTION_POISON	:  options->do_poison = true; break;
 	
       default	:
 	WRITE_MSGSTR(2, "Try \"");

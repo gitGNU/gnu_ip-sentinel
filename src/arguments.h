@@ -43,6 +43,7 @@ struct Arguments
     bool		do_fork;
     char const *	chroot;
     char const *	iface;
+    bool		do_poison;
 
     enum {dirFROM=1, dirTO=2,
 	  dirBOTH=3}	arp_dir;
