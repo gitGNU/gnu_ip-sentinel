@@ -1,3 +1,4 @@
+.*-up-to-date
 ._*-up-to-date
 .gdb_history
 .www-timestamp
@@ -15,10 +16,10 @@ config.status
 configure.scan
 depcomp
 install-sh
+ip-sentinel-*.asc
 ip-sentinel-*.tar.bz2
 ip-sentinel-*.tar.gz
 ip-sentinel-0.1
-ip-sentinel-*.asc
 ip-sentinel.spec
 missing
 mkinstalldirs
