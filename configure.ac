@@ -70,5 +70,5 @@ ENSC_DIET_CHECK_IN_ADDR_T
 ENSC_DIET_CHECK_ETHER
 
 AC_CONFIG_FILES([Makefile m4/Makefile
-                 src/Makefile])
+                 src/Makefile ip-sentinel.spec])
 AC_OUTPUT
