@@ -228,8 +228,9 @@ Examples are: "10.0.0.1@0:1:2:3:4:5" or "10.0.0.2@!a:b:c:d:e:f".
 .\"
 .TP
 .BI *@ srcmac\ [mac]
-Every host using the srcmac will be blocked unless there is a matching 
-\fIip@srcmac\fR specification. This option does not support '!' specifiers.
+Every host using the srcmac will be blocked unless there is a matching
+\fIip@srcmac\fR specification. This option does \fBnot\fR support '!' 
+specifiers.
 .TP
 .IB net / mask\ \fR[ \fImac\fR]
 .TQ
@@ -373,6 +374,8 @@ should be expressed with netmasks.
 10.0.0.1@a:a:a:a:a:a
 .RS 0
 10.0.0.2@!1:1:1:1:1:1
+.RS 0
+*@b:b:b:b:b:b             ## block MAC b:b:b:b:b:b regardless of the IP
 
 This setup will not send ARP-replies for the IPs 192.168.0.{3-255} but
 when a host tries to use e.g. 169.254.145.213, ip-sentinel will tell
