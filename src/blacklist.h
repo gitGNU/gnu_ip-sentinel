@@ -38,7 +38,7 @@ void		BlackList_init(BlackList *lst, char const *filename);
 void		BlackList_softUpdate(BlackList *lst);
 void		BlackList_update(BlackList *lst);
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) || defined(ENSC_TESTSUITE)
 void		BlackList_print(BlackList *lst, int fd);
 #endif
 

@@ -385,6 +385,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
   BlackList *			lst = const_cast(BlackList *)(lst_const);
   
   assert(lst!=0);
+
   {
     struct IPData const	*data = Vector_search(&lst->ip_list, &ip, IPData_searchCompare);
     if (data!=0) {
@@ -425,7 +426,7 @@ BlackList_getMac(BlackList const *lst_const, struct in_addr const ip, struct eth
   return result;
 }
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) || defined(ENSC_TESTSUITE)
 void
 BlackList_print(BlackList *lst, int fd)
 {
