@@ -31,15 +31,31 @@
 
     <h2>News</h2>
     <dl>
+      <dt>16 Dec 2004</dt>
+      <dd>Version <a href="files/ip-sentinel-0.11.tar.bz2">0.11</a>
+	(149KiB) released
+	<small>[<a href="files/ip-sentinel-0.11.tar.bz2.asc">SIG</a>]</small>
+      </dd>
+
+      <dd class="remark">This version allows to block hosts with a
+      certain MAC regardless of the IP. The syntax
+      "<code>*@<i>&lt;mac&gt;</i></code>" is used for this feature
+      which helps e.g. to isolate hosts which are infected by worms or
+      viruses.</dd>
+
+      <dd class="remark">The default options were changed to
+      "<code>--poision --mac 802.3x --direction BOTH</code>" as
+      already announced in earlier versions.</dd>
+
       <dt>17 Jun 2004</dt>
       <dd>Version <a href="files/ip-sentinel-0.10.tar.bz2">0.10</a>
-	(163KKiB) released
+	(128KiB) released
 	<small>[<a href="files/ip-sentinel-0.10.tar.bz2.asc">SIG</a>]</small>
       </dd>
 
-      <dd class="remark">Code cleanup is the main change in this
-      version. Compilation issues with dietlibc 0.26 were fixed and
-      the tai64n format is used for timestamps now.</dd>
+      <dd class="remark">Code cleanups are the main change in this
+      version. Compilation issues with dietlibc 0.26 were fixed also
+      and the tai64n format is used for timestamps now.</dd>
 
 
       <dt>16 Dec 2003</dt>
@@ -161,7 +177,7 @@
 -->	      <small>
 <!-- Created: Fri Nov 15 18:41:30 CET 2002 -->
 <!-- hhmts start -->
-Last modified: Thu Jun 17 14:49:07 CEST 2004
+Last modified: Thu Dec 16 01:00:37 CET 2004
 <!-- hhmts end -->
               </small>
             </div>

@@ -1,3 +1,14 @@
+Version 0.11
+============
+
+	- FEATURE: hosts with a certain MAC can be blocked regardless of
+	  the IP. This feature has the syntax '*@<mac>' and can be used
+	  e.g. to isolate hosts which are infected by worms or viruses.
+
+	- LEGACY BREAKAGE: '--poision --mac 802.3x --direction BOTH' are
+	  now the default options as already announced in version 0.8.
+
+
 Version 0.10
 ============
 	

@@ -230,7 +230,7 @@ Examples are: "10.0.0.1@0:1:2:3:4:5" or "10.0.0.2@!a:b:c:d:e:f".
 .BI *@ srcmac\ [mac]
 Every host using the srcmac will be blocked unless there is a matching
 \fIip@srcmac\fR specification. This option does \fBnot\fR support '!' 
-specifiers.
+modifiers.
 .TP
 .IB net / mask\ \fR[ \fImac\fR]
 .TQ
