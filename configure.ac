@@ -99,6 +99,8 @@ AC_DEFINE_UNQUOTED([PATH_CONFIGFILE],  ["$configfile"],  [Configfilename])
 
 ENSC_MODERN_COMPILER_CHECK
 
+AM_CONDITIONAL(ENSC_USE_GLIBC,    test x"$ensc_use_dietlibc" != xyes)
+AM_CONDITIONAL(ENSC_USE_DIETLIBC, test x"$ensc_use_dietlibc"  = xyes)
 
 # Checks for libraries.
 
