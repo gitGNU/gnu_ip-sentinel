@@ -19,8 +19,27 @@
 #ifndef H_IPSENTINEL_PARAMETERS_H
 #define H_IPSENTINEL_PARAMETERS_H
 
-#define MAX_REQUESTS		511
-#define MAX_ERRORS		6
+
+  //*******************
+  //***
+  //**  General parameters
+  //*
+
+  // ip-sentinel tries to ignore temporary errors when it has been daemonized.
+  // How often an error occurs determines if it is of temporary nature or
+  // not. MAX_ERRORS specifies the upper bound of allowed subsequent failures.
+#define MAX_ERRORS		6u
+
+
+  //*******************
+  //***
+  //**  Parameters affecting the random-MAC generation
+  //*
+
+  // The MAC which is used to create a random MAC from. To do this, the
+  // RANDOM_MAC_OCTET'th octet (zero-based index), will be randomized.
+#define RANDOM_MAC_BASE		{ 0xde, 0xad, 0xbe, 0xef, 0, 0 }
+#define RANDOM_MAC_OCTET	5u
 
   // To be switch-friendly, only a limited amount of random MACs will be used
   // at a certain time. This amount is specified by BLACKLIST_RAND_COUNT
@@ -31,6 +50,11 @@
 #define BLACKLIST_RAND_PERIOD	30000
 
 
+  //*******************
+  //***
+  //**  Parameters affecting the resizing of dynamic datastructures
+  //*
+
   // When resizing of a vector is *necessarily*, the new allocated size will be
   // set to VECTOR_SET_THRESHOLD * count. Omitting of parentheses is intended
   // to allow rational numbers but to avoid floating point operations
@@ -40,6 +64,16 @@
   // be higher than VECTOR_SET_THRESHOLD.
 #define VECTOR_DEC_THRESHOLD	24/16
 
+
+  //*******************
+  //***
+  //**  Anti-DOS parameters
+  //*
+
+  // Limit the amount of pending arp-replies to MAX_REQUESTS count. When a new
+  // job will be scheduled which is exceeding this count, the program will drop
+  // it and sleep for a certain time.
+#define MAX_REQUESTS		511u
 
   // DOS-measurement is given in a unit of connections per ANTIDOS_TIME_BASE
   // seconds
@@ -54,7 +88,9 @@
   // Maximum DOS-values; this value is used to prevent overflows
 #define ANTIDOS_COUNT_MAX	1000u
 
+  // 
 #define ANTIDOS_ENTRIES_MAX	0x8000
+
 
 #endif	//  H_IPSENTINEL_PARAMETERS_H
 
