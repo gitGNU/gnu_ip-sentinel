@@ -246,23 +246,22 @@ handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_a
 {
   static int		error_count =0;
   pid_t			pid;
-  sigset_t		block_chld;
+  sigset_t		block_set, old_set;
   
   while (child_count>MAX_CHILDS) {
     writeMsgTimestamp(2);
-    WRITE_MSGSTR(2, "Too much children (");
+    WRITE_MSGSTR(2, ": Too much children (");
     writeUInt(2, child_count);
-    WRITE_MSGSTR(2, ") forked; sleeping a while...");
+    WRITE_MSGSTR(2, ") forked; sleeping a while...\n");
     sleep(1);
   }
 
-  sigemptyset(&block_chld);
-  sigaddset  (&block_chld, SIGCHLD);
-  sigprocmask(SIG_BLOCK, &block_chld, 0);
+  sigfillset(&block_set);
+  sigprocmask(SIG_BLOCK, &block_set, &old_set);
   
   ++child_count;
 
-  sigprocmask(SIG_UNBLOCK, &block_chld, 0);
+  sigprocmask(SIG_SETMASK, &old_set, 0);
 
   pid = fork();
   switch (pid) {
@@ -344,7 +343,7 @@ run(int sock, int if_idx, char const *filename)
     if (!AntiDOS_isOversized(&anti_dos)) oversize_sleep = 1;
     else {
       writeMsgTimestamp(2);
-      WRITE_MSGSTR(2, "Too much requests from too much IPs; last IP was ");
+      WRITE_MSGSTR(2, ": Too much requests from too much IPs; last IP was ");
       writeIP     (2, *src_ip);
       WRITE_MSGSTR(2, "\n");
 
@@ -359,7 +358,7 @@ run(int sock, int if_idx, char const *filename)
 
     if (do_omit) {
       writeMsgTimestamp(2);
-      WRITE_MSGSTR(2, "Too much requests from ");
+      WRITE_MSGSTR(2, ": Too much requests from ");
       writeIP     (2, *src_ip);
       WRITE_MSGSTR(2, "; DOS-measurement was ");
       writeUInt   (2, arp_count);
