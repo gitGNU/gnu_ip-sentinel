@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <string.h>
 #include <time.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -50,12 +51,16 @@ Worker_init(struct Worker *worker, struct Arguments const *args,
   
   assert(worker!=0);
 
-  worker->sock      = sock;
-  worker->if_idx    = if_idx;
-  worker->llmac     = args->llmac;
-  worker->do_poison = args->do_poison;
+  worker->sock       = sock;
+  worker->if_idx     = if_idx;
+  worker->llmac      = args->llmac;
+  worker->do_poison  = args->do_poison;
+  worker->action_cmd = args->action_cmd;
 
   Epipe(fds);
+  SETCLOEXEC(fds[0]);
+  SETCLOEXEC(fds[1]);
+  
   pid = Efork();
 
   if (pid==0) {
@@ -230,34 +235,57 @@ arpether_ntoa(void const *ptr_v)
   return ether_ntoa(ptr);
 }
 
-static void ALWAYSINLINE
-Worker_printJob(struct RequestInfo const *rq)
+static void
+callAction(char const * const desc[8])
 {
+  pid_t		pid;
+  if (desc[0]==0) return;
+
+  switch (pid=fork()) {
+    case -1	:  perror("fork()"); break;
+    case 0	:  break;
+    default	:
+      execv(desc[0], const_cast(char * const *)(desc));
+      perror("execl()");
+      exit(1);
+  }
+}
+
+static void ALWAYSINLINE
+Worker_printJob(struct Worker const *worker,
+		struct RequestInfo const *rq)
+{
+  char const *	desc[8] = {
+    [0] = worker->action_cmd,
+    [2] = strdupa(arpinet_ntoa (rq->request.arp_spa)),
+    [3] = strdupa(arpether_ntoa(rq->request.arp_sha)),
+    [4] = strdupa(arpinet_ntoa (rq->request.arp_tpa)),
+    [5] = strdupa(arpether_ntoa(rq->request.arp_tha)),
+    [6] = strdupa(arpether_ntoa(&rq->mac)),
+    [7] = 0
+  };
+  
+  if      (rq->type==jobSRC) desc[1] = "0";
+  else if (rq->type==jobDST) desc[1] = "1";
+  else                       desc[1] = "-1";
+  
   writeMsgTimestamp(1);
-#if 0
-#warning !!! Legacy log-format enabled; support can be dropped without explicit warnings !!!
-  WRITE_MSGSTR(1, ": Handle IP '");
-  WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_tpa));
-  WRITE_MSGSTR(1, "' requested by '");
-  WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_spa));
-  WRITE_MSGSTR(1, "' [");
-  WRITE_MSG   (1, arpether_ntoa(rq->request.arp_sha));
-  WRITE_MSGSTR(1, "]\n");
-#else
+
   WRITE_MSGSTR(1, ": ");
-  WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_spa));
+  WRITE_MSG   (1, desc[2]);	// spa
   WRITE_MSGSTR(1, "/");
-  WRITE_MSG   (1, arpether_ntoa(rq->request.arp_sha));
+  WRITE_MSG   (1, desc[3]);	// sha
   if      (rq->type==jobSRC) WRITE_MSGSTR(1, " >- ");
   else if (rq->type==jobDST) WRITE_MSGSTR(1, " -> ");
   else                       WRITE_MSGSTR(1, " ?? ");
-  WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_tpa));
+  WRITE_MSG   (1, desc[4]);	// tpa
   WRITE_MSGSTR(1, "/");
-  WRITE_MSG   (1, arpether_ntoa(rq->request.arp_tha));
+  WRITE_MSG   (1, desc[5]);	// tha
   WRITE_MSGSTR(1, " [");
-  WRITE_MSG   (1, arpether_ntoa(&rq->mac));
+  WRITE_MSG   (1, desc[6]);	// mac
   WRITE_MSGSTR(1, "]\n");
-#endif
+
+  callAction(desc);
 }
 
 static bool
@@ -307,7 +335,7 @@ Worker_scheduleNewJob(struct Worker *worker, struct PriorityQueue *queue, time_t
   Worker_fillPacket(worker, &job, &request);
   Worker_executeJob(worker, &job);
 
-  Worker_printJob(&request);
+  Worker_printJob(worker, &request);
   
   if (PriorityQueue_count(queue)>=MAX_REQUESTS) {
     writeMsgTimestamp(2);
@@ -373,6 +401,8 @@ Worker_run(struct Worker *worker)
 
     FD_ZERO(&read_set);
     FD_SET(worker->fd, &read_set);
+
+    while (waitpid(-1, 0, WNOHANG)>0) {}
     
     if (select(worker->fd+1, &read_set, 0,0, time_ptr)==-1) {
       ++error_count;
