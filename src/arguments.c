@@ -61,7 +61,8 @@
 
 
 #define OPTION_MAC			1024
-#define OPTION_DIRECTION		1025
+#define OPTION_LLMAC			1025
+#define OPTION_DIRECTION		1026
 
 static struct option
 cmdline_options[] = {
@@ -76,6 +77,7 @@ cmdline_options[] = {
   { "help",      no_argument,       0, 'h' },
   { "version",   no_argument,       0, 'v' },
   { "mac",       required_argument, 0, OPTION_MAC },
+  { "llmac",     required_argument, 0, OPTION_LLMAC },
   { "direction", required_argument, 0, OPTION_DIRECTION },
   { 0, 0, 0, 0 }
 };
@@ -105,8 +107,11 @@ printHelp(char const *cmd, int fd)
 	       "      --chroot|-r <DIR>       go into chroot-jail at DIR [<HOME>]\n"
 	       "      --nofork|-n             do not fork a daemon-process\n"
 	       "      --mac <MAC>             use MAC as the default faked mac address;\n"
-	       "                              possible values are RANDOM, 802.1d, 802.3x\n"
-	       "                              or a real mac [RANDOM]\n"
+	       "                              possible values are LOCAL, RANDOM, 802.1d,\n"
+	       "                              802.3x or a real mac [RANDOM]\n"
+	       "      --llmac <MAC>           use MAC as the default mac address in link-level\n"
+	       "                              headers when answering requests *from* intruders;\n"
+	       "                              see '--mac' for possible values [LOCAL]\n"
 	       "      --direction <DIR>       answer arp-requests going into the specified\n"
 	       "                              direction (relative to the intruder) only.\n"
 	       "                              Valid values are 'FROM', 'TO' and 'BOTH'. [TO]\n"
@@ -128,19 +133,21 @@ printVersion(int fd)
 }
 
 static void
-parseMac(char const *optarg, struct Arguments *options)
+Arguments_parseMac(char const *optarg, struct TaggedMac *mac)
 {
-  if (strcmp(optarg, "RANDOM")==0) options->mac_type = mcRANDOM;
+  if      (strcmp(optarg, "RANDOM")==0) mac->type = mcRANDOM;
+  else if (strcmp(optarg, "LOCAL")==0)  mac->type = mcLOCAL;
   else {
-    if (!xether_aton_r(optarg, &options->mac_addr)) {
+    if (!xether_aton_r(optarg, &mac->addr.ether)) {
       WRITE_MSGSTR(2, "invalid mac specified\n");
       exit(1);
     }
+    mac->type = mcFIXED;
   }
 }
 
 static void
-parseDirection(char const *optarg, struct Arguments *options)
+Arguments_parseDirection(char const *optarg, struct Arguments *options)
 {
   if      (strcmp(optarg, "FROM")==0) options->arp_dir = dirFROM;
   else if (strcmp(optarg, "TO")  ==0) options->arp_dir = dirTO;
@@ -165,7 +172,8 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
   options->do_fork  = true;
   options->chroot   = 0;
   options->arp_dir  = dirTO;
-  options->mac_type = mcRANDOM;
+  options->mac.type = mcRANDOM;
+  options->llmac.type = mcLOCAL;
 
   while (1) {
     int	c = getopt_long(argc, argv, "hi:p:l:e:u:g:nr:", cmdline_options, 0);
@@ -182,8 +190,9 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
       case 'n'	:  options->do_fork  = false;  break;
       case 'r'	:  options->chroot   = optarg; break;
       case 'v'	:  printVersion(1); exit(0);   break;
-      case OPTION_MAC		:  parseMac(optarg, options);       break;
-      case OPTION_DIRECTION	:  parseDirection(optarg, options); break;
+      case OPTION_MAC		:  Arguments_parseMac(optarg, &options->mac);   break;
+      case OPTION_LLMAC		:  Arguments_parseMac(optarg, &options->llmac); break;
+      case OPTION_DIRECTION	:  Arguments_parseDirection(optarg, options);   break;
 	
       default	:
 	WRITE_MSGSTR(2, "Try \"");
@@ -205,4 +214,20 @@ parseOptions(int argc, char *argv[], struct Arguments *options)
   }
 
   options->iface = argv[optind];
+}
+
+static void
+fixupMac(struct TaggedMac *mac)
+{
+  if (mac->type==mcLOCAL) {
+    (void)xether_aton_r("LOCAL", &mac->addr.ether);
+    mac->type=mcFIXED;
+  }
+}
+
+void
+Arguments_fixupOptions(struct Arguments *options)
+{
+  fixupMac(&options->mac);
+  fixupMac(&options->llmac);
 }
