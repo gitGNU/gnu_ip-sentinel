@@ -42,6 +42,7 @@ noinst_HEADERS			=  antidos.h arguments.h arpmessage.h	\
 				   prioqueue.h prioqueue.ic
 
 EXTRA_DIST			=  $(testsuite_FILES)
+CLEANFILES			=  $(testsuite_CLEANFILES)
 
 include $(top_srcdir)/m4/diet.am
 include $(srcdir)/testsuite/Makefile-files
