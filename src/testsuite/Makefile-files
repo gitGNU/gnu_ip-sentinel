@@ -21,7 +21,9 @@ check_LIBRARIES			=  libenscsentinel.a
 libenscsentinel_a_SOURCES	=  $(lib_SRCS)
 libenscsentinel_a_CPPFLAGS	=  -DENSC_TESTSUITE
 
-check_PROGRAMS			=  blacklist-parser blacklist-check prioqueue-check
+check_PROGRAMS			=  blacklist-parser blacklist-check		\
+				   prioqueue-check simulate
+
 check_SCRIPTS			=  testsuite/blacklist-check1.sh \
                                    testsuite/prioqueue-check1.sh \
                                    testsuite/prioqueue-check2.sh \
@@ -39,11 +41,16 @@ prioqueue_check_SOURCES		=  testsuite/prioqueue-check.c
 prioqueue_check_LDADD		=  libenscsentinel.a
 prioqueue_check_CPPFLAGS	=  -DENSC_TESTSUITE
 
+simulate_SOURCES		=  testsuite/simulate.c
+simulate_LDADD			=  libenscsentinel.a
+simulate_CPPFLAGS		=  -DENSC_TESTSUITE
+
 tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
 				   testsuite/blacklist-check.sh
 
-tests_XTRA			=  testsuite/prioqueue-check.sh			\
-				   testsuite/functions
+tests_XTRA			=  testsuite/functions				\
+				   testsuite/prioqueue-check.sh			\
+				   testsuite/simulate.sh
 
 tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/blacklist-check.ips		\
@@ -61,21 +68,48 @@ tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/prioqueue-check2.inp		\
 				   testsuite/data/prioqueue-check2.out		\
 				   testsuite/data/prioqueue-check3.inp		\
-				   testsuite/data/prioqueue-check3.out
+				   testsuite/data/prioqueue-check3.out		\
+				   testsuite/data/simulate.cfg			\
+				   testsuite/data/simulate.inp			\
+				   testsuite/data/simulate-L-L.cmd		\
+				   testsuite/data/simulate-L-L.out		\
+				   testsuite/data/simulate-L-R.cmd		\
+				   testsuite/data/simulate-L-R.out		\
+				   testsuite/data/simulate-L-S.cmd		\
+				   testsuite/data/simulate-L-S.out		\
+				   testsuite/data/simulate-R-L.cmd		\
+				   testsuite/data/simulate-R-L.out		\
+				   testsuite/data/simulate-R-R.cmd		\
+				   testsuite/data/simulate-R-R.out		\
+				   testsuite/data/simulate-R-S.cmd		\
+				   testsuite/data/simulate-R-S.out
 
-
-TESTS				=  $(tests_SCRPTS) prioqueue-check		\
-				   testsuite/blacklist-check1.sh		\
+generated_SCRPTS		=  testsuite/blacklist-check1.sh		\
 				   testsuite/prioqueue-check1.sh		\
 				   testsuite/prioqueue-check2.sh		\
-				   testsuite/prioqueue-check3.sh
+				   testsuite/prioqueue-check3.sh		\
+				   testsuite/simulate-L-L.sh			\
+				   testsuite/simulate-L-R.sh			\
+				   testsuite/simulate-L-S.sh			\
+				   testsuite/simulate-R-L.sh			\
+				   testsuite/simulate-R-R.sh			\
+				   testsuite/simulate-R-S.sh
+
+
+TESTS				=  $(tests_SCRPTS) $(generated_SCRPTS)
 
 testsuite_FILES			=  $(tests_SCRPTS) $(tests_DAT) $(tests_XTRA)
+
+testsuite_CLEANFILES		=  $(generated_SCRPTS)
 
 testsuite/blacklist-check1.sh:	testsuite/blacklist-check.sh
 				@rm -f $@
 				ln -s ../$< $@
 
 testsuite/prioqueue-check%.sh:	testsuite/prioqueue-check.sh
+				@rm -f $@
+				ln -s ../$< $@
+
+testsuite/simulate%.sh:		testsuite/simulate.sh
 				@rm -f $@
 				ln -s ../$< $@
