@@ -32,9 +32,10 @@ EXTRA_DIST	=  ip-sentinel.spec ${contrib_FILES} $(doc_FILES) \
 		   disttest disttest-data
 CLEANFILES	=  $(doc_CLEANFILES)
 
-if MAINTAINER_MODE
-TESTS		=  disttest
-endif
+
+silent.%:	FORCE
+		$(MAKE) '$*' -s
+
 
 include $(srcdir)/contrib/Makefile-files
 include $(srcdir)/doc/Makefile-files
@@ -45,3 +46,5 @@ include $(top_srcdir)/m4/diet.am
 include $(top_srcdir)/m4/gpgsig.am
 include $(top_srcdir)/m4/substrule.am
 include $(top_srcdir)/m4/wwwpublish.am
+
+.PHONY:		FORCE
