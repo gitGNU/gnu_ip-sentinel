@@ -1,0 +1,20 @@
+TIME: (Re)reading blacklist. Active children: 0
+
+192.168.23.42  	de:ad:be:ef:0:XX                   	OK
+192.168.23.43  	not found                          	OK
+192.168.42.0   	de:ad:be:ef:0:XX                   	OK
+192.168.42.254 	de:ad:be:ef:0:XX                   	OK
+192.168.42.255 	not found                          	OK
+169.1.2.3      	de:ad:be:ef:0:XX                   	OK
+169.0.8.15     	not found                          	OK
+10.1.2.3       	a:b:c:d:e:f/a:b:c:d:e:f            	OK
+1.1.1.1        	not found                          	OK
+192.168.0.1    	not found                          	OK
+192.168.0.42   	not found                          	OK
+192.168.8.0    	not found                          	OK
+192.168.8.42   	not found                          	OK
+192.168.1.23   	not found                          	OK
+192.168.5.42   	not found                          	OK
+192.168.0.255  	not found                          	OK
+192.168.1.255  	not found                          	OK
+192.168.0.200  	not found                          	OK

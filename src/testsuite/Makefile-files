@@ -1,0 +1,52 @@
+## --*- makefile -*--
+
+# Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#  
+
+check_LIBRARIES			=  libenscsentinel.a
+
+libenscsentinel_a_SOURCES	=  $(lib_SRCS)
+
+check_PROGRAMS			=  blacklist-parser blacklist-check
+check_SCRIPTS			=  testsuite/blacklist-check1.sh
+
+blacklist_parser_SOURCES	=  testsuite/blacklist-parser.c
+blacklist_parser_LDADD		=  libenscsentinel.a
+
+blacklist_check_SOURCES		=  testsuite/blacklist-check.c
+blacklist_check_LDADD		=  libenscsentinel.a
+
+tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
+				   testsuite/blacklist-check.sh
+tests_DAT			=  testsuite/data/blacklist-check.fd3		\
+				   testsuite/data/blacklist-check.ips		\
+				   testsuite/data/blacklist-check.lst		\
+				   testsuite/data/blacklist-check.out		\
+				   testsuite/data/blacklist-check.res		\
+				   testsuite/data/blacklist-check1.fd3		\
+				   testsuite/data/blacklist-check1.lst		\
+				   testsuite/data/blacklist-check1.out		\
+				   testsuite/data/blacklist-check1.res		\
+				   testsuite/data/blacklist.dat
+
+TESTS				=  $(tests_SCRPTS)			\
+				   testsuite/blacklist-check1.sh
+
+testsuite_FILES			=  $(tests_SCRPTS) $(tests_DAT)
+
+testsuite/blacklist-check1.sh:	testsuite/blacklist-check.sh
+				@rm -f $@
+				ln -s ../$< $@
