@@ -258,10 +258,6 @@ handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_a
 
   sigfillset(&block_set);
   sigprocmask(SIG_BLOCK, &block_set, &old_set);
-  
-  ++child_count;
-
-  sigprocmask(SIG_SETMASK, &old_set, 0);
 
   pid = fork();
   switch (pid) {
@@ -281,9 +277,12 @@ handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_a
       exit(0);
 
     default	:
+      ++child_count;
       error_count = 0;
       break;
   }
+
+  sigprocmask(SIG_SETMASK, &old_set, 0);
 }
 
 static void NORETURN
