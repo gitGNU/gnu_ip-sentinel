@@ -85,6 +85,20 @@ struct  ether_arp {
        __result; }))
 #endif
 
+#if !defined(HAVE_DECL_STRDUPA) || !HAVE_DECL_STRDUPA
+  // from glibc's <string.h>
+#  if defined __GNUC__
+/* Duplicate S, returning an identical alloca'd string.  */
+#   define strdupa(s)                                                           \
+  (__extension__                                                              \
+    ({                                                                        \
+      __const char *__old = (s);                                              \
+      size_t __len = strlen (__old) + 1;                                      \
+      char *__new = (char *) __builtin_alloca (__len);                        \
+      (char *) memcpy (__new, __old, __len);                                  \
+    }))
+#  endif
+#endif
 
 #if defined(__GNUC__)
 #  define UNUSED		__attribute__((__unused__))
