@@ -1,5 +1,6 @@
 #! /bin/bash
 
+: ${srcdir=.}
 . ${srcdir}/testsuite/functions
 
 outfile_err=`mktemp /tmp/ip-sentinel.check.XXXXXX`
@@ -25,7 +26,7 @@ function verify()
 	diff -b -c - ${basefile}.fd3 || exit 1
 }
 
-file ${execfile} | grep -q 'statically linked' || {
+LANG=C file ${execfile} | grep -q 'statically linked' || {
     exists ef       && { execprog ef 2>&1 | sed -e '1,2d'; } && verify
     exists valgrind && execprog valgrind -q && verify
 }
