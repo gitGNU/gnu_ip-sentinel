@@ -263,9 +263,12 @@ are having the format "de:ad:be:ef:00:XX". Within a short timespan
 only 32 values are possible for \fIXX\fR.
 
 When having overlapping networks and/or single IPs, this one with the
-most specified netmask (count of 1's) takes precedence. IPs have a
-netmask of 32. The behavior is unspecified when having overlapping
-networks with the same count of 1's or when having duplicate IPs.
+most specified netmask (count of 1's) takes precedence. When netmasks
+are equal, networks which are using the "@srcmac" or "@!srcmac" syntax
+are taking precedence over those without source-macs. This "@..." rule
+\fBdoes not\fR apply to IPs. The behavior is unspecified when having
+overlapping networks with the same count of 1's and "@..." 
+specification, or when having duplicate IPs.
 
 .\"
 .SS PERFORMANCE
