@@ -19,10 +19,10 @@ function execprog()
 
 function verify()
 {
-    sed -e 's!^.*\(: (Re)reading blacklist\)!TIME\1!;
-	    s!\(de:ad:be:ef:0:\)[^[:blank:]]*!\1XX!g' ${outfile_out} |
-	diff -c - ${basefile}.out || exit 1
-    diff -c ${outfile_fd3} ${basefile}.fd3 || exit 1
+    sed -e "${REPLACE_REGEX}" ${outfile_out} |
+	diff -b -c - ${basefile}.out || exit 1
+    sed -e "${REPLACE_REGEX}" ${outfile_fd3} |
+	diff -b -c - ${basefile}.fd3 || exit 1
 }
 
 file ${execfile} | grep -q 'statically linked' || {
