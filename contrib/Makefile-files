@@ -18,7 +18,7 @@
 
 contrib_FILES		=  contrib/ip-sentinel.init		\
 			   contrib/ip-sentinel.sysconfig	\
-			   contrib/ip-sentinel-run
+			   contrib/ip-sentinel.params
 
 rhsysconfigdir		=  $(sysconfdir)/sysconfig
 minitdir		=  $(sysconfdir)/minit
@@ -28,7 +28,8 @@ install-contrib:	$(contrib_FILES)
 			$(INSTALL_SCRIPT) contrib/ip-sentinel.init      $(DESTDIR)$(initrddir)/ip-sentinel
 			$(INSTALL_DATA)   contrib/ip-sentinel.sysconfig $(DESTDIR)$(rhsysconfigdir)/ip-sentinel
 
-			$(INSTALL_SCRIPT) contrib/ip-sentinel-run	$(DESTDIR)$(minitdir)/services/ip-sentinel/run
+			ln -s $(sbindir)/ip-sentinel                    $(DESTDIR)$(minitdir)/services/ip-sentinel/run
+			$(INSTALL_DATA) contrib/ip-sentinel.params	$(DESTDIR)$(minitdir)/services/ip-sentinel/params
 			touch $(DESTDIR)$(minitdir)/services/ip-sentinel/respawn
 			chmod 0644 $(DESTDIR)$(minitdir)/services/ip-sentinel/respawn
 
