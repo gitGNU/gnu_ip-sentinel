@@ -108,6 +108,8 @@ int main(int argc, char *argv[])
   while (scanf("%s %s %s %s", spa, sha, tpa, tha)>0) {
     enum { stNORMAL, stREVERSE, stEXIT }	state = stNORMAL;
 
+    if (spa[0]=='\0') continue;
+
     while (state!=stEXIT) {
       struct RequestInfo	rq;
       struct ScheduleInfo	job;
