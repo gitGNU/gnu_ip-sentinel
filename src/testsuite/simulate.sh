@@ -12,9 +12,22 @@ execfile=./simulate
 
 function execprog()
 {
-     "$@" ${execfile} -i ${srcdir}/testsuite/data/simulate.cfg \
-	$(cat ${basefile}.cmd) eth0 \
-	<${srcdir}/testsuite/data/simulate.inp 10>${outfile_out} 1>&10
+    local ext=$(basename "$basefile")
+    local cfg=
+    local inp=
+    ext=${ext##simulate-}
+
+    case "$ext" in
+	L-*|R-*) cfg=${srcdir}/testsuite/data/simulate.cfg
+		 inp=${srcdir}/testsuite/data/simulate.inp
+		 ;;
+	*)	 cfg=${basefile}.cfg
+		 inp=${basefile}.inp
+		 ;;
+    esac
+
+    "$@" ${execfile} -i ${cfg} $(cat ${basefile}.cmd) eth0 \
+    <${inp} 10>${outfile_out} 1>&10
 }
 
 function verify()
