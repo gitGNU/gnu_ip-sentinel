@@ -234,7 +234,7 @@ Worker_printJob(struct RequestInfo const *rq)
 {
   writeMsgTimestamp(1);
 #if 0
-#warning !!! Legacy log-format enabled; support may be dropped without explicit warnings !!!
+#warning !!! Legacy log-format enabled; support can be dropped without explicit warnings !!!
   WRITE_MSGSTR(1, ": Handle IP '");
   WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_tpa));
   WRITE_MSGSTR(1, "' requested by '");
@@ -247,9 +247,9 @@ Worker_printJob(struct RequestInfo const *rq)
   WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_spa));
   WRITE_MSGSTR(1, "/");
   WRITE_MSG   (1, arpether_ntoa(rq->request.arp_sha));
-  if      (rq->type==jobSRC) WRITE_MSGSTR(1, " !-> ");
-  else if (rq->type==jobDST) WRITE_MSGSTR(1, " ->! ");
-  else                       WRITE_MSGSTR(1, " ERR ");
+  if      (rq->type==jobSRC) WRITE_MSGSTR(1, " >- ");
+  else if (rq->type==jobDST) WRITE_MSGSTR(1, " -> ");
+  else                       WRITE_MSGSTR(1, " ?? ");
   WRITE_MSG   (1, arpinet_ntoa (rq->request.arp_tpa));
   WRITE_MSGSTR(1, "/");
   WRITE_MSG   (1, arpether_ntoa(rq->request.arp_tha));
@@ -300,7 +300,7 @@ Worker_scheduleNewJob(struct Worker *worker, struct PriorityQueue *queue, time_t
   error_count = 0;
 }
 
-int
+static int
 Worker_jobCompare(void const *lhs_v, void const *rhs_v)
 {
   struct ScheduleInfo const *	lhs = lhs_v;
