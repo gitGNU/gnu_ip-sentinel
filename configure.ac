@@ -15,12 +15,31 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-AC_INIT(ip-sentinel, 0.10, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
+AC_INIT(ip-sentinel, 0.10.1, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
 AC_CONFIG_SRCDIR([src/antidos.c])
 AM_CONFIG_HEADER([config.h])
 
 AM_INIT_AUTOMAKE([gnits dist-bzip2 subdir-objects])
 AM_MAINTAINER_MODE
+
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+
+if test "$host_os" != "linux-gnu"; then
+	AC_MSG_ERROR(["Sorry, build is only supported for GNU/Linux"])
+fi
+
+if test "$build_os" != "linux-gnu"; then
+	AC_MSG_WARN([
+****************************
+
+Builds in non-GNU/Linux environments are not well tested and will fail
+probably. To have a minimal change to succeed, make sure that a recent
+GNU 'make' will be used.
+
+****************************])
+fi
+
 
 username=nobody
 configfile=ips.cfg
