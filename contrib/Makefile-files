@@ -20,16 +20,20 @@ contrib_FILES		=  contrib/ip-sentinel.init		\
 			   contrib/ip-sentinel.sysconfig	\
 			   contrib/ip-sentinel-run
 
-install-contrib:	$(contrib_FILES)
-			$(mkinstalldirs) $(DESTDIR)/etc/{init.d,sysconfig,minit/services/ip-sentinel}
-			$(INSTALL_SCRIPT) contrib/ip-sentinel.init      $(DESTDIR)/etc/init.d/ip-sentinel
-			$(INSTALL_DATA)   contrib/ip-sentinel.sysconfig $(DESTDIR)/etc/sysconfig/ip-sentinel
+rhsysconfigdir		=  $(sysconfdir)/sysconfig
+minitdir		=  $(sysconfdir)/minit
 
-			$(INSTALL_SCRIPT) contrib/ip-sentinel-run	$(DESTDIR)/etc/minit/services/ip-sentinel/run
-			touch $(DESTDIR)/etc/minit/services/ip-sentinel/respawn
+install-contrib:	$(contrib_FILES)
+			$(mkinstalldirs) $(DESTDIR){$(initrddir),$(rhsysconfigdir),$(minitdir)/services/ip-sentinel}
+			$(INSTALL_SCRIPT) contrib/ip-sentinel.init      $(DESTDIR)$(initrddir)/ip-sentinel
+			$(INSTALL_DATA)   contrib/ip-sentinel.sysconfig $(DESTDIR)$(rhsysconfigdir)/ip-sentinel
+
+			$(INSTALL_SCRIPT) contrib/ip-sentinel-run	$(DESTDIR)$(minitdir)/services/ip-sentinel/run
+			touch $(DESTDIR)$(minitdir)/services/ip-sentinel/respawn
+			chmod 0644 $(DESTDIR)$(minitdir)/services/ip-sentinel/respawn
 
 uninstall-contrib:
-			rm -f $(DESTDIR)/etc/minit/services/ip-sentinel/run
-			rm -f $(DESTDIR)/etc/minit/services/ip-sentinel/respawn
-			rm -f $(DESTDIR)/etc/init.d/ip-sentinel   
-			rm -f $(DESTDIR)/etc/sysconfig/ip-sentinel
+			rm -f $(DESTDIR)$(minitdir)/services/ip-sentinel/run
+			rm -f $(DESTDIR)$(minitdir)/services/ip-sentinel/respawn
+			rm -f $(DESTDIR)$(initrddir)/ip-sentinel   
+			rm -f $(DESTDIR)$(rhsysconfigdir)/ip-sentinel
