@@ -19,8 +19,6 @@
 #ifndef H_IPSENTINEL_UTIL_H
 #define H_IPSENTINEL_UTIL_H
 
-#include "compat.h"
-
 #include <stdlib.h>
 #include <sys/param.h>
 #include <string.h>

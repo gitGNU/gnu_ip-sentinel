@@ -22,7 +22,6 @@
 
 #include "blacklist.h"
 #include "arguments.h"
-#include "compat.h"
 
 #include <stdbool.h>
 #include <signal.h>

@@ -19,8 +19,6 @@
 #ifndef H_IPSENTINEL_WRAPPERS_H
 #define H_IPSENTINEL_WRAPPERS_H
 
-#include "compat.h"
-
 #include <unistd.h>
 #include <grp.h>
 #include <sys/types.h>

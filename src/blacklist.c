@@ -24,7 +24,6 @@
 #include "parameters.h"
 #include "util.h"
 #include "arguments.h"
-#include "compat.h"
 
 #include <errno.h>
 #include <stdbool.h>

@@ -22,7 +22,6 @@
 
 #include "arguments.h"
 #include "util.h"
-#include "compat.h"
 
 #include <getopt.h>
 #include <assert.h>

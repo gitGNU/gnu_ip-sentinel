@@ -20,7 +20,6 @@
 #define H_IPSENTINEL_BLACKLIST_H
 
 #include "ensc_vector/vector.h"
-#include "compat.h"
 
 #include <netinet/in.h>
 #include <net/ethernet.h>

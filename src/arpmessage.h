@@ -19,8 +19,6 @@
 #ifndef H_IPSENTINEL_ARPMESSAGE_H
 #define H_IPSENTINEL_ARPMESSAGE_H
 
-#include "compat.h"
-
 #include <net/ethernet.h>
 #include <net/if_arp.h>
 

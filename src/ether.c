@@ -20,8 +20,6 @@
 #  include <config.h>
 #endif
 
-#include "compat.h"
-
 #include <net/ethernet.h>
 #include <assert.h>
 #include <stdbool.h>

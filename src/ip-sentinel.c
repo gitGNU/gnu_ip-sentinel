@@ -27,7 +27,6 @@
 #include "blacklist.h"
 #include "antidos.h"
 #include "arpmessage.h"
-#include "compat.h"
 #include "ip-sentinel.h"
 #include "worker.h"
 #include "jobinfo.h"
