@@ -122,10 +122,10 @@ configfile (default: <chrootdir>/ips.cfg) by the following two ways:
 - single IPs (e.g. 192.168.0.1)
 - netmasks (e.g. 192.168.0.1/255.255.255.1 or 10.0.0.0/8)
 
-When adding an exclamation mark ('!') in front of an IP or net,
-this IP/net will be removed from a less-specified reservation
-list.  Analogously, IPs or networks can be added if they are
-more-specified than fitting negation-lists
+When adding an exclamation mark ('!') in front of an IP or network
+specification, this IP/net will be removed from a less-specified
+reservation list.  Analogously, IPs or networks can be added if they
+are more-specified than fitting negation-lists
 
 "Less-specified" means that the corresponding netmask has not so
 many set bits like the other mask; IPs have a mask of 32 and are
@@ -185,5 +185,4 @@ EXAMPLES
 
 TODO
 ----
-
-- parameterize some aspects of the anti-DOS mechanism
+- do not fork seperate processes
