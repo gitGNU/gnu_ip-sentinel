@@ -309,8 +309,6 @@ run(int sock, int if_idx, char const *filename)
   unsigned int			oversize_sleep = 1;
 
   memset(&addr, 0, sizeof(addr));
-  addr.sll_family  = AF_PACKET;
-  addr.sll_ifindex = if_idx;
   
   BlackList_init(&cfg, filename);
   AntiDOS_init(&anti_dos);
@@ -381,6 +379,25 @@ run(int sock, int if_idx, char const *filename)
 }
 
 int
+generateSocket(char const *iface, int *idx)
+{
+  int			sock = Esocket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
+  struct sockaddr_ll	addr;
+  assert(idx!=0);
+
+  *idx = getIfIndex(sock, iface);
+
+  memset(&addr, 0, sizeof(addr));
+  addr.sll_family   = AF_PACKET;
+  addr.sll_protocol = htons(ETH_P_ARP);
+  addr.sll_ifindex  = *idx;
+  
+  (void)Ebind(sock, &addr, sizeof addr);
+
+  return sock;
+}
+
+int
 main(int argc, char *argv[])
 {
   Arguments		arguments;
@@ -389,8 +406,7 @@ main(int argc, char *argv[])
   
   parseOptions(argc, argv, &arguments);
 
-  sock   = Esocket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
-  if_idx = getIfIndex(sock, arguments.iface);
+  sock   = generateSocket(arguments.iface, &if_idx);
   daemonize(&arguments);
 
   signal(SIGCHLD, sigChild);
