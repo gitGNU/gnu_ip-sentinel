@@ -2,25 +2,45 @@
 
 %{!?username:%define username	ip-sentinel}
 %define service		ip-sentinel
-%define homedir		%{_var}/lib/ip-sentinel
+%define homedir		%_var/lib/ip-sentinel
+%define minitdir	%_sysconfdir/minit
+%define minitsvcdir	%minitdir/services/%name
 
 Summary:	A tool to prevent unauthorized usage of IPs
 Name:		ip-sentinel
 Version:	@VERSION@
-Release:	2
+Release:	1
 Epoch:		0
 License:	GPL
 Group:		System Environment/Daemons
 URL:		http://www.tu-chemnitz.de/~ensc/ip-sentinel
 Source0:	http://www.tu-chemnitz.de/~ensc/ip-sentinel/files/%{name}-%{version}.tar.bz2
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
+Requires:		init(ip-sentinel)
 Requires(pre):		/usr/sbin/useradd /usr/sbin/groupadd
 Requires(postun):	/usr/sbin/userdel /usr/sbin/groupdel
-Requires(post,preun):	/sbin/chkconfig
 
 %if %{?_without_dietlibc:0}%{!?_without_dietlibc:1}
 BuildRequires:	dietlibc
 %endif
+
+
+%package sysv
+Summary:		SysV initscripts for ip-sentinel
+Group:			System Environment/Base
+Provides:		init(ip-sentinel)
+Requires:		%{name} = %{epoch}:%{version}-%{release}
+Requires(preun,postun):	initscripts
+Requires(post,preun):	/sbin/chkconfig
+
+
+%package minit
+Summary:		minit initscripts for ip-sentinel
+Group:			System Environment/Base
+Provides:		init(ip-sentinel)
+Requires:		%{name} = %{epoch}:%{version}-%{release}
+Requires(pre,postun):	minit-setup
+
 
 
 %description
@@ -31,68 +51,130 @@ the MAC in their ARP tables and will send future packets to this
 invalid MAC, rendering the IP unreachable.
 
 
+%description sysv
+IP Sentinel is a tool that tries to prevent unauthorized usage of IP
+addresses.
+
+This package provides the scripts which can be used to start ip-sentinel
+with a SysV initconcept.
+
+
+%description minit
+IP Sentinel is a tool that tries to prevent unauthorized usage of IP
+addresses.
+
+This package provides the scripts which can be used to start ip-sentinel
+with the minit initconcept.
+
+
+##---------------------------------------------
+
+
 %prep
 %setup -q
 
 
+##---------------------------------------------
+
+
 %build
-%configure --enable-release --with-username=%{username} %{?_without_dietlibc:--disable-dietlibc}
+%configure --enable-release --with-username=%username %{?_without_dietlibc:--disable-dietlibc}
 %{__make} %{?_smp_mflags} all
+
+
+##---------------------------------------------
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} DESTDIR=${RPM_BUILD_ROOT} install
+%__make DESTDIR=$RPM_BUILD_ROOT install
 
-%{__install} -d ${RPM_BUILD_ROOT}{%{_sysconfdir}/sysconfig,%{_initrddir}}
-%{__install} -m755 -p contrib/ip-sentinel.init      $RPM_BUILD_ROOT%{_initrddir}/ip-sentinel
-%{__install} -m644 -p contrib/ip-sentinel.sysconfig $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/ip-sentinel
-%{__install} -m750 -d ${RPM_BUILD_ROOT}%{homedir}
+## The SysV part...
+%__install -d $RPM_BUILD_ROOT{%_sysconfdir/sysconfig,%_initrddir}
+%__install -m755 -p contrib/ip-sentinel.init      $RPM_BUILD_ROOT%_initrddir/ip-sentinel
+%__install -m644 -p contrib/ip-sentinel.sysconfig $RPM_BUILD_ROOT%_sysconfdir/sysconfig/ip-sentinel
+%__install -m750 -d $RPM_BUILD_ROOT%homedir
+
+
+## The minit part...
+%__install -d -m755 $RPM_BUILD_ROOT%minitsvcdir
+%__install -p -m755 contrib/ip-sentinel-run $RPM_BUILD_ROOT%minitsvcdir/run
+touch $RPM_BUILD_ROOT%minitsvcdir/respawn
+chmod 0644 $RPM_BUILD_ROOT%minitsvcdir/respawn
+
+
+##---------------------------------------------
 
 
 %check
-%{__make} check
+%__make check
+
+
+##---------------------------------------------
 
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 
+##---------------------------------------------
+
+
 %pre
-/usr/sbin/groupadd -r %{username} &>/dev/null || :
-/usr/sbin/useradd -r -s /sbin/nologin -M -d %{homedir}		\
-	 	  -c 'IP sentinel user' -g %{username} %{username} &>/dev/null || :
-
-%post
-/sbin/chkconfig --add %{service}
-
-%preun
-if test "$1" = "0"; then
-	%{_initrddir}/%{service} stop >/dev/null
-	/sbin/chkconfig --del %{service}
-fi
+/usr/sbin/groupadd -r %username &>/dev/null || :
+/usr/sbin/useradd -r -s /sbin/nologin -M -d %homedir		\
+	 	  -c 'IP sentinel user' -g %username %username &>/dev/null || :
 
 %postun
 if test "$1" = "0"; then
-	/usr/sbin/userdel  %{username} &>/dev/null || :
-	/usr/sbin/groupdel %{username} &>/dev/null || :
-elif test "$1" -ge 1; then
-	%{_initrddir}/%{service} condrestart >/dev/null
+	/usr/sbin/userdel  %username &>/dev/null || :
+	/usr/sbin/groupdel %username &>/dev/null || :
 fi
+
+
+%post sysv
+/sbin/chkconfig --add %service
+
+%preun sysv
+if test "$1" = "0"; then
+	%_initrddir/%service stop >/dev/null
+	/sbin/chkconfig --del %service
+fi
+
+%postun sysv
+test "$1" = 0 || %_initrddir/%service condrestart &>/dev/null
+
 
 
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING ChangeLog NEWS README THANKS
-%{_mandir}/*/*
-%{_sbindir}/*
-%config %{_initrddir}/*
-%config(noreplace) %{_sysconfdir}/sysconfig/*
-%attr(-,root,%{username}) %{homedir}
+%_mandir/*/*
+%_sbindir/*
+%attr(-,root,%username) %homedir
+%config(noreplace) %_sysconfdir/sysconfig/*
+
+
+%files sysv
+%defattr(-,root,root,-)
+%config %_initrddir/*
+
+
+%files minit
+%defattr(-,root,root,-)
+%dir %minitsvcdir
+%config %minitsvcdir/run
+%minitsvcdir/respawn
+
 
 
 %changelog
+* Tue Aug  5 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0:0.6-1
+- version 0.6
+- added minit support
+- removed unneeded curlies
+
 * Thu Jul 17 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> 0:0.5-2
 - removed %%doc attribute from %%mandir-entries
 
