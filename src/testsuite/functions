@@ -4,13 +4,15 @@ export EF_PROTECT_BELOW=1
 export EF_PROTECT_FREE=1
 export EF_FILL=42
 
+DIFF='diff -u -U 1 -b'
+
 datadir=${srcdir}/testsuite/data
 basefile=`basename $0`
 basefile=${datadir}/${basefile%%.sh}
 
 REPLACE_REGEX='s!^.*\(: (Re)reading blacklist\)!TIME\1!;
-               s![[:space:],[]\([0-9a-fA-F]:\)!0\1!g;
-	       :a s!\([@:/!]\)\([0-9a-fA-F][]/,:[:blank:]]\)!\10\2!g;ta;
+               s!\([[:space:],[]\)\([0-9a-fA-F]:\)!\10\2!g;
+	       :a s!\([@:/!|]\)\([0-9a-fA-F][]/|,:[:blank:]]\)!\10\2!g;ta;
 	       s!:\([0-9a-fA-F]\)$!:0\1!g;
 	       s!\(de:ad:be:ef:00:\)[^],[:blank:]]*!\1XX!g'
 
