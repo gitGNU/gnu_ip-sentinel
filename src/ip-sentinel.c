@@ -247,8 +247,8 @@ handleMessage(int sock, int if_idx, struct ether_addr const *mac, struct ether_a
   static int		error_count =0;
   pid_t			pid;
   sigset_t		block_set, old_set;
-  
-  while (child_count>MAX_CHILDS) {
+
+  while (child_count=>MAX_CHILDS) {
     writeMsgTimestamp(2);
     WRITE_MSGSTR(2, ": Too much children (");
     writeUInt(2, child_count);
