@@ -54,12 +54,14 @@ void
 sigChild(int sig UNUSED)
 {
   while (waitpid(-1, 0, WNOHANG)>0) { if (child_count>0) --child_count; }
+  signal(SIGCHLD, sigChild);
 }
 
 void
 sigHup(int sig UNUSED)
 {
   do_reload = 1;
+  signal(SIGHUP, sigHup);
 }
 
 inline static void
@@ -117,9 +119,6 @@ daemonize(Arguments *arguments)
   Esetgroups(1, &gid);
   Esetgid(gid);
   Esetuid(uid);
-
-  signal(SIGCHLD, sigChild);
-  signal(SIGHUP,  sigHup);
 
   Eclose(0);
 
@@ -384,5 +383,9 @@ main(int argc, char *argv[])
   sock   = Esocket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
   if_idx = getIfIndex(sock, arguments.iface);
   daemonize(&arguments);
+
+  signal(SIGCHLD, sigChild);
+  signal(SIGHUP,  sigHup);
+
   run(sock, if_idx, arguments.ipfile);
 }
