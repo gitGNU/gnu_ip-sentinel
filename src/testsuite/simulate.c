@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
       printRequest(FD, spa, sha, tpa, tha);
 
       WRITE_MSGSTR(FD, "  DST: ");
-      mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_tpa, &mac_buffer);
+      mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_tpa, 0, &mac_buffer);
       if (mac==0) WRITE_MSGSTR(FD, "MISS\n");
       else {
 	rq.mac = *mac;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
       }
 
       WRITE_MSGSTR(FD, "  SRC: ");
-      mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_spa, &mac_buffer);
+      mac = BlackList_getMac(&cfg, *(struct in_addr *)arp->arp_spa, &arp->arp_sha, &mac_buffer);
       if (mac==0) WRITE_MSGSTR(FD, "MISS\n");
       else {
 	rq.mac = *mac;
