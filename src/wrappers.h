@@ -265,5 +265,12 @@ Efcntl_l(int fd, int cmd, long arg)
   return res;
 }
 
+inline static sighandler_t
+Esignal(int signum, sighandler_t handler)
+{
+  sighandler_t		res = signal(signum, handler);
+  FatalErrnoError(res==SIG_ERR, 1, "signal()");
+  return res;
+}
 
 #endif	//  H_IPSENTINEL_WRAPPERS_H
