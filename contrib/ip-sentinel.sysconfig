@@ -8,7 +8,7 @@
 # IPS_DEVICE=eth0
 
 
-## Assign to yes if running a dietlibc compiled version of ip-sentinel
+## Assign to yes if running a dietlibc-compiled version of ip-sentinel
 ## on a system using remote NSS for passwd-lookups (e.g. LDAP, NIS).
 ##
 ## When using a group which is not the effective group of the user,

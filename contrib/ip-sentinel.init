@@ -9,14 +9,9 @@
 # Source function library.
 . /etc/init.d/functions
 
-# Get config.
-. /etc/sysconfig/network
-
 # Check that networking is up.
-if [ "$NETWORKING" = "no" ]
-then
-	exit 0
-fi
+test -f /etc/sysconfig/network && . /etc/sysconfig/network
+test "$NETWORKING" != "no" || exit 0
 
 defuser=ip-sentinel
 test -f /etc/sysconfig/ip-sentinel && . /etc/sysconfig/ip-sentinel
