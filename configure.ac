@@ -7,6 +7,7 @@ AM_INIT_AUTOMAKE([gnits dist-bzip2 subdir-objects])
 AM_MAINTAINER_MODE
 
 username=nobody
+configfile=ips.cfg
 
 # Checks for programs.
 AC_PROG_CC
