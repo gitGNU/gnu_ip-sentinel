@@ -1,0 +1,185 @@
+.\" $Id$
+.\" Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+.\"  
+.\" Permission is granted to make and distribute verbatim copies of
+.\" this manual provided the copyright notice and this permission notice
+.\" are preserved on all copies.
+.\"  
+.\" Permission is granted to process this file through TeX and print the
+.\" results, provided the printed document carries copying permission
+.\" notice identical to this one except for the removal of this paragraph
+.\" (this paragraph not being relevant to the printed manual).
+.\"  
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a 
+.\" permission notice identical to this one.
+.\"  
+.\" Permission is granted to copy and distribute translations of this manual
+.\" into another language, under the above conditions for modified versions,
+.\" except that this permission notice may be stated in a translation
+.\" approved by the Free Software Foundation
+.\"  
+.TH ip-sentinel 8 "November 18 2002" "@PACKAGE@ 0.1"
+.\"
+.\" ====================
+.\"
+.SH NAME
+.PP
+ip-sentinel \- keeps your IP space clean
+.\"
+.\" ====================
+.\"
+.SH SYNOPSIS
+.B ip-sentinel
+.RB [ \-\-ipfile | \-i
+.IR file ]
+.RB [ \-\-pidfile | \-p
+.IR file ]
+.RB [ \-\-logfile | \-l
+.IR file ]
+.RB [ \-\-errfile | \-e
+.IR file ]
+.RB [ \-\-user | \-u
+.IR username ]
+.RB [ \-\-chroot | \-r
+.IR dir ]
+.RB [ \-\-nofork | \-n ]
+.RB [ \-\-help | \-h ]
+.RB [ \-\-version ]
+.IR interface
+.\"
+.\" ====================
+.\"
+.SH DESCRIPTION
+.B ip-sentinel
+starts a daemon which tries to prevent unauthorized usage of IPs
+within the local ethernet broadcastdomain by giving an answer to
+ARP-requests. After receiving such a reply, the requesting party stores
+the told MAC in its ARP-table and will send future packets to this
+MAC. Because this MAC is invalid, the host with the invalid IP can not
+be reached.
+
+After startup it opens its logfiles, goes into a chroot jail, drops
+privileges and forks itself into background by default. The parameters
+of these operations can by changed by the options described below.
+.\"
+.\" ====================
+.\"
+.SH OPTIONS
+.TP
+.BR \-\-user | \-u\ \fIusername
+After doing basical initializations, the program will drop its
+privilegies by changing its user and group ID. The \fIusername\fR
+parameter determines these new IDs and must by an alphanumeric
+username or a numeric uid.
+
+.B Attention:
+.\"
+When having a dietlibc compiled version in a system which uses remote
+NSS (e.g. LDAP, NIS) to make passwd-lookups, you will have to use
+numeric uids.
+.\"
+.TP
+.BR \-\-chroot | \-r\ \fIdirname
+Specifies the directory where the program shall go into and call
+.B chroot()
+after finishing its initialization. By default it is the homedirectory
+of the user specified with the \fB\-\-user\fR option.
+.TP
+.BR \-\-ipfile | \-i\ \fIfilename
+Sets the name of the configuration file which contains the list of
+forbidden IPs. This name is relative to the chroot and is
+.BR ips.cfg
+by default. This file will be reread automatically after changes.
+.TP
+.BR \-\-pidfile | \-p\ \fIfilename
+Sets the file where the pid of the daemon will be written into. This
+filename is relative to the root-filesystem and is
+.BR /var/run/ip\-sentinel.run
+by default.
+.TP
+.BR \-\-logfile | \-l\ \fIfilename
+Sets the file where normal operations will be logged. Normal
+operations are e.g. an ARP-reply for a forbidden IP. This filename is
+relative to the root-filesystem and
+.BR /var/log/ip-sentinel.out
+by default.
+.TP
+.BR \-\-errfile | \-e\ \fIfilename
+Sets the file where error-conditions will be logged. Error-conditions
+are e.g. detected DOS attacks (bombing the ip-sentinel with
+ARP-requests) or errors in the configuration file. This filename is
+relative to the root-filesystem and
+.BR /var/log/ip-sentinel.err
+by default.
+.TP
+.BR \-\-nofork | \-n
+Prevents daemon from going into background after initialization. This
+option may be useful when using advanced init-concepts like minit
+(http://www.fefe.de/minit/).
+.TP
+.BR \-\-help | \-h
+Prints help message and exits.
+.TP
+.BR \-\-version
+Prints the version of the program and exits.
+.\"
+.\" ====================
+.\"
+.SH CONFIGURATION FILE
+The location of the configfile is relatively to the choosen
+chroot-directory. Its default is determined at compilation time but it
+can be overriden by the \fB\-\-ipfile\fR option.
+
+The content of this file has the following syntax:
+.\"
+.TP
+.IR  ip\  [ mac ]
+Specifies an IP which shall be blocked. "Blocked" means that
+ARP-replies will be generated telling that the IP \fIip\fR has the MAC
+\fImac\fR. When the MAC parameter is not given, a random one will be
+choosen.
+
+.B Attention:
+.\"
+Giving a MAC in a switched environment does not work, because the
+switch will be confused when receiving ARP-replies for the same IP on
+different ports (this one of the bad-host and this one of the
+ip-sentinel host).
+
+Examples are: "192.168.42.23  11:22:33:44:55:66" or "10.0.0.0".
+.TP
+.IB net / mask
+Specifies that IPs of an entiry network shall be blocked. See above
+for the meaning of "blocked". Unlike at single IPs, it is not possible
+to specify a MAC address and a random one will be generated everytime.
+
+Examples are: "169.0.0.0/8" or "192.168.8.15/255.255.65.31".
+.TP
+.BI ! ip
+The give IP \fIip\fR will be ignored. By default any not specified IP
+will be ignored but when having blocked netmasks it may be usefully to
+allow certain IPs.
+
+An example is: "!192.168.23.42"
+.TP
+.BI ! net / mask
+Tells that IPs the given network shall be ignored.
+
+Examples are: "!192.168.1.0/255.255.255.0" or "!0.0.0.0/0" (the
+default).
+.TP
+.BI #\  comment\ \fR(and\ \fRempty\ \fRlines)
+A comment; will be ignored
+
+.PP
+.\"
+To be switch-friendly there are only a few random MACs possible which
+are having the format "de:ad:be:ef:00:XX". Within a short timespan
+only 32 values are possible for \fIXX\fR.
+
+When having overlapping networks and/or single IPs, this with the most
+specified netmask (count of 1's) takes precedence. IPs have a netmask
+of 32. The behavior is unspecified when having networks with the same
+count of 1's or when having duplicate IPs.

@@ -1,0 +1,12 @@
+# CHROOT=/var/lib/ip-sentinel
+# IPFILE=ips.cfg
+# USER=ip-sentinel
+# LOGFILE=/var/log/ip-sentinel.out
+# ERRFILE=/var/log/ip-sentinel.err
+# OPTIONS=
+# DEVICE=eth0
+
+
+## Assign to yes if running a dietlibc compiled version of ip-sentinel
+## on a system using remote NSS for passwd-lookups (e.g. LDAP, NIS).
+# NEEDS_NUMERIC_UID=

@@ -1,0 +1,16 @@
+#! /bin/bash
+
+export EF_PROTECT_BELOW=1
+export EF_PROTECT_FREE=1
+export EF_FILL=42
+
+datadir=${srcdir}/testsuite/data
+basefile=`basename $0`
+basefile=${datadir}/${basefile%%.sh}
+
+function exists()
+{
+    which "$1" >/dev/null 2>&1
+}
+
+set -e
