@@ -32,6 +32,7 @@
 #include <netinet/ether.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <time.h>
 
 static struct ether_addr const	DEFAULT_MAC = {{  0xde, 0xad, 0xbe, 0xef, 0, 0 } };
 
