@@ -1,6 +1,6 @@
 ## $Id$
 
-# Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+# Copyright (C) 2002,2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-AC_INIT(ip-sentinel, 0.11, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
+AC_INIT(ip-sentinel, 0.11.1, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
 AC_CONFIG_SRCDIR([src/antidos.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -34,7 +34,7 @@ if test "$build_os" != "linux-gnu"; then
 ****************************
 
 Builds in non-GNU/Linux environments are not well tested and will fail
-probably. To have a minimal change to succeed, make sure that a recent
+probably. To have a minimal chance to succeed, make sure that a recent
 GNU 'make' will be used.
 
 ****************************])
