@@ -108,18 +108,20 @@ generated_SCRPTS		=  testsuite/blacklist-check1.sh		\
 
 TESTS +=			$(tests_SCRPTS) $(generated_SCRPTS)
 
-testsuite_FILES			=  $(tests_SCRPTS) $(tests_DAT) $(tests_XTRA)
+testsuite_FILES =		$(tests_SCRPTS) $(tests_DAT) $(tests_XTRA)
 
-testsuite_CLEANFILES		=  $(generated_SCRPTS)
+testsuite_CLEANFILES =		$(generated_SCRPTS)
+
+testsuite_absdir :=		$(shell cd $(srcdir)/testsuite && pwd)
 
 testsuite/blacklist-check1.sh:	testsuite/blacklist-check.sh
 				@rm -f $@
-				ln -s ../$< $@
+				ln -s $(testsuite_absdir)/$(<F) $@
 
 testsuite/prioqueue-check%.sh:	testsuite/prioqueue-check.sh
 				@rm -f $@
-				ln -s ../$< $@
+				ln -s $(testsuite_absdir)/$(<F) $@
 
 testsuite/simulate%.sh:		testsuite/simulate.sh
 				@rm -f $@
-				ln -s ../$< $@
+				ln -s $(testsuite_absdir)/$(<F) $@
