@@ -88,6 +88,7 @@ generated_SCRPTS		=  testsuite/blacklist-check1.sh		\
 				   testsuite/prioqueue-check1.sh		\
 				   testsuite/prioqueue-check2.sh		\
 				   testsuite/prioqueue-check3.sh		\
+				   testsuite/simulate-test.sh			\
 				   testsuite/simulate-L-L.sh			\
 				   testsuite/simulate-L-R.sh			\
 				   testsuite/simulate-L-S.sh			\
