@@ -83,6 +83,7 @@ ether_ntoa(struct ether_addr const *addr)
     *buf_ptr++ = ':';
   }
 
+  assert(buf_ptr == buffer+sizeof(buffer));
   buf_ptr[-1] = '\0';
 
   return buffer;
