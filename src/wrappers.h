@@ -65,12 +65,34 @@ Eopen(char const *fname, int flags, mode_t mode)
 }
 
 /*@unused@*/
+inline static /*@observer@*/ struct group const *
+Egetgrnam(char const *name)
+    /*@*/
+{
+  struct group const   *res = getgrnam(name);
+  FatalErrnoError(res==0, 1, "getgrnam()");
+
+  return res;
+}
+
+/*@unused@*/
 inline static /*@observer@*/ struct passwd const *
 Egetpwnam(char const *name)
     /*@*/
 {
   struct passwd const   *res = getpwnam(name);
   FatalErrnoError(res==0, 1, "getpwnam()");
+
+  return res;
+}
+
+/*@unused@*/
+inline static /*@observer@*/ struct passwd const *
+Egetpwuid(uid_t uid)
+    /*@*/
+{
+  struct passwd const   *res = getpwuid(uid);
+  FatalErrnoError(res==0, 1, "getpwuid()");
 
   return res;
 }
