@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <signal.h>
 
-extern volatile sig_atomic_t	child_count;
+extern struct ether_addr	local_mac_address;
 
 inline static bool
 isDOS(unsigned int count)
