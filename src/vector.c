@@ -61,7 +61,7 @@ Vector_sort(struct Vector *vec, int (*compare)(const void *, const void *))
 static void
 Vector_resizeInternal(struct Vector *vec)
 {
-  vec->allocated *= vec->count * VECTOR_SET_THRESHOLD;
+  vec->allocated = vec->count * VECTOR_SET_THRESHOLD;
   ++vec->allocated;
 
   assert(vec->allocated >= vec->count);
