@@ -25,6 +25,8 @@
 #include <unistd.h>
 #include <assert.h>
 
+struct ether_addr	local_mac_address = { { 127,0,0,1,0,0 } };
+
 int cmp(void const *lhs_v, void const *rhs_v)
 {
   unsigned int const *	lhs = lhs_v;
