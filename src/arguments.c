@@ -22,11 +22,14 @@
 
 #include "arguments.h"
 #include "util.h"
+#include "compat.h"
 
 #include <getopt.h>
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
+#include <net/ethernet.h>
+#include <netinet/ether.h>
 
 #ifndef DEFAULT_IPFILE
 #  define DEFAULT_IPFILE		PATH_CONFIGFILE
@@ -57,6 +60,8 @@
 #endif
 
 
+#define OPTION_MAC			1024
+
 static struct option
 cmdline_options[] = {
   { "ipfile",  required_argument, 0, 'i' },
@@ -69,6 +74,7 @@ cmdline_options[] = {
   { "chroot",  required_argument, 0, 'r' },
   { "help",    no_argument,       0, 'h' },
   { "version", no_argument,       0, 'v' },
+  { "mac",     required_argument, 0, OPTION_MAC },
   { 0, 0, 0, 0 }
 };
 
@@ -81,8 +87,8 @@ printHelp(char const *cmd, int fd)
 	       " [--ipfile|-i <FILE>] [--pidfile|-p <FILE>]\n"
 	       "        [--logfile|-l <FILE>] [--errfile|-e <FILE>]"
 	       " [--user|-u <USER>]\n"
-   	       "        [--chroot|-r <DIR>] [--nofork|-n] [--help|-h]\n"
-	       "        [--version] <interface>\n"
+   	       "        [--chroot|-r <DIR>] [--nofork|-n] [--mac MAC] \n"
+	       "        [--help|-h] [--version] <interface>\n"
 	       "\n"
 	       "      --ipfile|-i <FILE>      read blocked IPs from FILE [" DEFAULT_IPFILE "]\n"
 	       "                              within CHROOT\n"
@@ -96,6 +102,9 @@ printHelp(char const *cmd, int fd)
 	       "      --group|-g <GROUP>      run as group GROUP [gid of user]\n"
 	       "      --chroot|-r <DIR>       go into chroot-jail at DIR [<HOME>]\n"
 	       "      --nofork|-n             do not fork a daemon-process\n"
+	       "      --mac MAC               use MAC as the default faked mac address;\n"
+	       "                              possible values are RANDOM, 802.1d, 802.3x\n"
+	       "                              or a real mac [RANDOM]\n"
 	       "      --help|-h               display this text and exit\n"
 	       "      --version               print version and exit\n"
 	       "      interface               ethernet-interface where to listen\n"
@@ -113,8 +122,20 @@ printVersion(int fd)
 	       "the GNU General Public License.  This program has absolutely no warranty.\n");
 }
 
+static void
+parseMac(char const *optarg, struct Arguments *options)
+{
+  if (strcmp(optarg, "RANDOM")==0) options->mac_type = mcRANDOM;
+  else {
+    if (!xether_aton_r(optarg, &options->mac_addr)) {
+      WRITE_MSGSTR(2, "invalid mac specified\n");
+      exit(1);
+    }
+  }
+}
+
 void
-parseOptions(int argc, char *argv[], Arguments *options)
+parseOptions(int argc, char *argv[], struct Arguments *options)
 {
   assert(options!=0);
   
@@ -126,6 +147,7 @@ parseOptions(int argc, char *argv[], Arguments *options)
   options->group    = 0;
   options->do_fork  = true;
   options->chroot   = 0;
+  options->mac_type = mcRANDOM;
 
   while (1) {
     int	c = getopt_long(argc, argv, "hi:p:l:e:u:g:nr:", cmdline_options, 0);
@@ -141,7 +163,9 @@ parseOptions(int argc, char *argv[], Arguments *options)
       case 'g'	:  options->group    = optarg; break;
       case 'n'	:  options->do_fork  = false;  break;
       case 'r'	:  options->chroot   = optarg; break;
-      case 'v'	:  printVersion(1); exit(0);    break;
+      case 'v'	:  printVersion(1); exit(0);   break;
+      case OPTION_MAC	:  parseMac(optarg, options); break;
+	
       default	:
 	WRITE_MSGSTR(2, "Try \"");
 	WRITE_MSG   (2, argv[0]);
@@ -151,7 +175,7 @@ parseOptions(int argc, char *argv[], Arguments *options)
     }
   }
 
-  if (optind>=argc)        WRITE_MSGSTR(2, "No interface specified; ");
+  if      (optind>=argc)   WRITE_MSGSTR(2, "No interface specified; ");
   else if (optind+1!=argc) WRITE_MSGSTR(2, "Too much interfaces specified; ");
 
   if (optind+1!=argc) {

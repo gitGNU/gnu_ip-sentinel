@@ -20,8 +20,9 @@
 #define H_IPSENTINEL_ARGUMENTS_H
 
 #include <stdbool.h>
+#include <net/ethernet.h>
 
-typedef struct
+struct Arguments
 {
     char const *	ipfile;
     char const *	pidfile;
@@ -32,9 +33,12 @@ typedef struct
     bool		do_fork;
     char const *	chroot;
     char const *	iface;
-} Arguments;
+
+    enum {mcRANDOM, mcFIXED}	mac_type;
+    struct ether_addr		mac_addr;
+};
 
 void
-parseOptions(int argc, char *argv[], Arguments *options);
+parseOptions(int argc, char *argv[], struct Arguments *options);
 
 #endif	//  H_IPSENTINEL_ARGUMENTS_H
