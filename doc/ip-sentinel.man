@@ -20,7 +20,7 @@
 .\" except that this permission notice may be stated in a translation
 .\" approved by the Free Software Foundation
 .\"  
-.TH ip-sentinel 8 "November 18 2002" "@PACKAGE@ 0.2"
+.TH ip-sentinel 8 "May 27 2003" "@PACKAGE@ 0.4"
 .\"
 .\" ====================
 .\"
@@ -56,11 +56,10 @@ ip-sentinel \- keeps your IP space clean
 .SH DESCRIPTION
 .B ip-sentinel
 starts a daemon which tries to prevent unauthorized usage of IPs
-within the local ethernet broadcastdomain by giving an answer to
-ARP-requests. After receiving such a faked reply, the requesting party
-stores the told MAC in its ARP-table and will send future packets to
-this MAC. Because this MAC is invalid, the host with the invalid IP
-can not be reached.
+within an ethernet broadcastdomain by answering ARP requests. After
+receiving such a faked reply, the requesting party stores the MAC
+address in its ARP-table and will send future packets to this invalid
+MAC, rendering the IP unreachable.
 
 After startup it opens its logfiles, goes into a chroot jail, drops
 privileges and forks itself into background by default. The parameters
@@ -78,7 +77,7 @@ alphanumeric username/groupname or a numeric uid/gid.
 
 .B Attention:
 .\"
-When having a dietlibc compiled version in a system which uses remote
+When having a dietlibc-compiled version in a system which uses remote
 NSS (e.g. LDAP, NIS) to make passwd-lookups, you will have to use
 numeric IDs.
 .\"
@@ -150,10 +149,10 @@ will be choosen.
 
 .B Attention:
 .\"
-Giving a MAC in a switched environment does not work, because the
-switch will be confused when receiving ARP-replies for the same IP on
-different ports (this one of the bad-host and this one of the
-ip-sentinel host).
+Assigning a MAC in a switched environment will not have the desired
+effect, because the switch will be confused when receiving ARP-replies
+for the same IP on different ports (this one of the bad-host and this
+one of the ip-sentinel host).
 
 Examples are: "192.168.42.23  11:22:33:44:55:66" or "10.0.0.0".
 .TP
