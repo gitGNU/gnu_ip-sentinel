@@ -52,12 +52,17 @@ struct  ether_arp {
 };
 #endif
 
+#if  (defined(__dietlibc__) && !defined(DIET_HAS_IN_ADDR_T)) ||  \
+    (!defined(__dietlibc__) && !defined(HAVE_IN_ADDR_T))
+  typedef uint32_t      in_addr_t;
+#endif
+
 #ifndef __GLIBC__
-# define TEMP_FAILURE_RETRY(expression) \
-  (__extension__                                                              \
-    ({ long int __result;                                                     \
-       do __result = (long int) (expression);                                 \
-       while (__result == -1L && errno == EINTR);                             \
+# define TEMP_FAILURE_RETRY(expression)			\
+  (__extension__					\
+    ({ long int __result;				\
+       do __result = (long int) (expression);		\
+       while (__result == -1L && errno == EINTR);	\
        __result; }))
 #endif
 
