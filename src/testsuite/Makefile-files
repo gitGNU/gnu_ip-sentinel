@@ -19,6 +19,7 @@
 check_LIBRARIES			=  libenscsentinel.a
 
 libenscsentinel_a_SOURCES	=  $(lib_SRCS)
+libenscsentinel_a_CPPFLAGS	=  -DENSC_TESTSUITE
 
 check_PROGRAMS			=  blacklist-parser blacklist-check
 check_SCRIPTS			=  testsuite/blacklist-check1.sh
