@@ -160,7 +160,9 @@ getIfIndex(int fd, char const *iface_name)
 static void
 generateJobToIntruder(struct Worker *worker,
 		      AntiDOS *anti_dos, BlackList const *blacklist,
-		      ArpMessage const *const msg, int *oversize_sleep)
+		      ArpMessage const *const msg,
+		      unsigned 
+int *oversize_sleep)
 {
   struct ether_addr		mac_buffer;
   struct ether_addr const	*mac;
@@ -210,7 +212,8 @@ generateJobToIntruder(struct Worker *worker,
 static void
 generateJobFromIntruder(struct Worker *worker,
 			AntiDOS *anti_dos, BlackList const *blacklist,
-			ArpMessage const *const msg, int *oversize_sleep)
+			ArpMessage const *const msg,
+			unsigned int *oversize_sleep)
 {
   struct ether_addr		mac_buffer;
   struct ether_addr const	*mac;
