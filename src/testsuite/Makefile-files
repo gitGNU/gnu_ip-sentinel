@@ -42,7 +42,8 @@ prioqueue_check_CPPFLAGS	=  -DENSC_TESTSUITE
 tests_SCRPTS			=  testsuite/blacklist-parser.sh		\
 				   testsuite/blacklist-check.sh
 
-tests_XTRA			=  testsuite/functions
+tests_XTRA			=  testsuite/prioqueue-check.sh			\
+				   testsuite/functions
 
 tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/blacklist-check.ips		\
@@ -54,7 +55,14 @@ tests_DAT			=  testsuite/data/blacklist-check.fd3		\
 				   testsuite/data/blacklist-check1.out		\
 				   testsuite/data/blacklist-check1.res		\
 				   testsuite/data/blacklist.dat			\
-				   testsuite/data/blacklist.out
+				   testsuite/data/blacklist.out			\
+				   testsuite/data/prioqueue-check1.inp		\
+				   testsuite/data/prioqueue-check1.out		\
+				   testsuite/data/prioqueue-check2.inp		\
+				   testsuite/data/prioqueue-check2.out		\
+				   testsuite/data/prioqueue-check3.inp		\
+				   testsuite/data/prioqueue-check3.out
+
 
 TESTS				=  $(tests_SCRPTS) prioqueue-check		\
 				   testsuite/blacklist-check1.sh		\

@@ -37,7 +37,9 @@ AM_CPPFLAGS			=  -D_GNU_SOURCE
 noinst_HEADERS			=  antidos.h arguments.h arpmessage.h	\
 				   blacklist.h compat.h ip-sentinel.h	\
 				   parameters.h util.h vector.h		\
-				   wrappers.h vector.ic prioqueue.ic
+				   worker.h jobinfo.h			\
+				   wrappers.h vector.ic			\
+				   prioqueue.h prioqueue.ic
 
 EXTRA_DIST			=  $(testsuite_FILES)
 
