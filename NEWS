@@ -1,5 +1,5 @@
-Version 0.8.91
-==============
+Version 0.9
+===========
 
 	- networks with '@MAC' statements are taking precedence over those
 	  with the same netmask but without such statements. This makes it

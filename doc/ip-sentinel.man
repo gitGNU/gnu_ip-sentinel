@@ -26,7 +26,7 @@
 .ns
 .TP \\$1
 ..
-.TH ip-sentinel 8 "Aug 28 2003" "@PACKAGE@ 0.7"
+.TH ip-sentinel 8 "Aug 28 2003" "@PACKAGE@ 0.9"
 .\"
 .\" ====================
 .\"
