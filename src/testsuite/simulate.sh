@@ -12,7 +12,9 @@ execfile=./simulate
 
 function execprog()
 {
-    "$@" ${execfile} $(cat ${basefile}.cmd) <${srcdir}/testsuite/data/simulate.inp 10>${outfile_out} 1>&10
+     "$@" ${execfile} -i ${srcdir}/testsuite/data/simulate.cfg \
+	$(cat ${basefile}.cmd) eth0 \
+	<${srcdir}/testsuite/data/simulate.inp 10>${outfile_out} 1>&10
 }
 
 function verify()
