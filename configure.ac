@@ -1,6 +1,6 @@
 ## $Id$
 
-# Copyright (C) 2002,2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+# Copyright (C) 2002,2003,2004,2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-AC_INIT(ip-sentinel, 0.11.1, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
+AC_INIT(ip-sentinel, 0.11.2, enrico.scholz@informatik.tu-chemnitz.de, [ip-sentinel])
 AC_CONFIG_SRCDIR([src/antidos.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -54,10 +54,6 @@ AC_PROG_LN_S
 AC_PROG_RANLIB
 
 ENSC_C99COMPILER
-if test "$ensc_cv_c99_c99compiler" != yes; then
-	AC_MSG_ERROR([This program requires a C99 compliant compiler.])
-fi
-
 ENSC_CHANGELOG()
 
 ENSC_STANDARD_TOOLS
