@@ -28,11 +28,14 @@ trap "rm -f $tmpfile" EXIT
 while read line; do
     eval set -- $line
     #echo "Testing with '$@'"
-    ${MAKE} distcheck "$@" &>$tmpfile || {
+    if ${MAKE} distcheck "$@" &>$tmpfile; then
+	echo -n "PASS: "
+    else
 	cat $tmpfile
-	echo "Options '$@' failed"
+	echo -n "FAIL: "
 	ok=
-    } >&2
+    fi >&2
+    echo "./configure $@"
 done < $srcdir/disttest-data
 
 test "$ok"
