@@ -24,6 +24,9 @@
 
 #include <net/ethernet.h>
 #include <assert.h>
+#include <stdbool.h>
+
+static bool const	allow_leading_zeros = true;
 
 #if defined(__dietlibc__) && !defined(HAVE_DIET_ETHER_ATON_R)
 struct ether_addr *
@@ -75,7 +78,7 @@ ether_ntoa(struct ether_addr const *addr)
   for (; pos<addr->ether_addr_octet+6; ++pos) {
     char	c = DEC2HEX[*pos>>4];
 
-    if (c!='0') *buf_ptr++ = c;
+    if (allow_leading_zeros || c!='0') *buf_ptr++ = c;
     *buf_ptr++ = DEC2HEX[*pos & 0x0F];
     *buf_ptr++ = ':';
   }
