@@ -44,7 +44,8 @@
 #include <sys/wait.h>
 #include <grp.h>
 
-static volatile sig_atomic_t	do_reload;
+struct ether_addr	local_mac_address;
+volatile sig_atomic_t	do_reload;
 
 static void sigHup(int);
 
@@ -140,9 +141,10 @@ daemonize(struct Arguments *arguments)
 }
 
 inline static int ALWAYSINLINE
-getIfIndex(int fd, char const *iface_name)
+initIfaceInformation(int fd, char const *iface_name)
 {
   struct ifreq		iface;
+  int			ifidx;
   
   assert(iface_name!=0);
   memcpy(iface.ifr_name, iface_name, IFNAMSIZ);
@@ -154,7 +156,19 @@ getIfIndex(int fd, char const *iface_name)
     exit(1);
   }
 
-  return iface.ifr_ifindex;
+  ifidx = iface.ifr_ifindex; 
+  Eioctl(fd, SIOCGIFHWADDR, &iface);
+  switch (iface.ifr_hwaddr.sa_family) {
+    case ARPHRD_ETHER   :
+      memcpy(&local_mac_address, iface.ifr_hwaddr.sa_data, sizeof(local_mac_address));
+      break;
+
+    default             :
+      WRITE_MSGSTR(2, "unsupported hardware-address (MAC) family of used interface\n");
+      exit(1);
+  }
+
+  return ifidx;
 }
 
 static void ALWAYSINLINE
@@ -322,9 +336,11 @@ generateSocket(char const *iface, int *idx)
 {
   int			sock = Esocket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
   struct sockaddr_ll	addr;
+
+  assert(iface!=0);
   assert(idx!=0);
 
-  *idx = getIfIndex(sock, iface);
+  *idx = initIfaceInformation(sock, iface);
 
   memset(&addr, 0, sizeof(addr));
   addr.sll_family   = AF_PACKET;
@@ -349,7 +365,6 @@ main(int argc, char *argv[])
   sock   = generateSocket(arguments.iface, &if_idx);
   daemonize(&arguments);
 
-  initLocalMac(sock, arguments.iface);
   Arguments_fixupOptions(&arguments);
   
   Worker_init(&worker, sock, if_idx);

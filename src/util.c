@@ -22,6 +22,7 @@
 
 #include "util.h"
 #include "wrappers.h"
+#include "ip-sentinel.h"
 
 #include <unistd.h>
 #include <assert.h>
@@ -31,8 +32,6 @@
 #include <netinet/ether.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-
-struct ether_addr		local_mac = { {0,0,0,0,0,0} };
 
 void
 writeMsgTimestamp(int fd)
@@ -119,31 +118,13 @@ writeIP(int fd, struct in_addr ip)
   write(fd, ip_str, strlen(ip_str));
 }
 
-void
-initLocalMac(int fd, char const *name)
-{
-  struct ifreq                iface;
-  memcpy(iface.ifr_name, name, IFNAMSIZ);
-  
-  Eioctl(fd, SIOCGIFHWADDR, &iface);
-  switch (iface.ifr_hwaddr.sa_family) {
-    case ARPHRD_ETHER	:
-      memcpy(&local_mac, iface.ifr_hwaddr.sa_data, sizeof(local_mac));
-      break;
-
-    default		:
-      WRITE_MSGSTR(2, "unsupported hardware-address (MAC) family of used interface\n");
-      exit(1);
-  }
-}
-
 struct ether_addr *
 xether_aton_r(char const *asc, struct ether_addr *addr)
 {
   char const *mac;
 
   if (strcmp(asc, "LOCAL") ==0) {
-    memcpy(addr, &local_mac, sizeof(*addr));
+    memcpy(addr, &local_mac_address, sizeof(*addr));
     return addr;
   }
   

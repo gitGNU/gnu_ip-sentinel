@@ -49,8 +49,6 @@
 
 #define XSTRCAT(dst, cnt, src) xstrcatn(dst, cnt, src, sizeof(src)-1)
 
-void initLocalMac(int fd, char const *);
-
 struct ether_addr *
 xether_aton_r(char const *asc, struct ether_addr *addr);
 
