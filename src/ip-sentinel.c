@@ -280,7 +280,7 @@ run(struct Worker *worker, struct Arguments const *args)
 {
   BlackList			cfg;
   AntiDOS			anti_dos;
-  int				error_count = 0;
+  unsigned int			error_count = 0;
   struct sockaddr_ll		addr;
   socklen_t			from_len;
   char				buffer[4096];

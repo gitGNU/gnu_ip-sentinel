@@ -575,9 +575,9 @@ BlackList_updateInternal(BlackList *lst, int fd)
 void
 BlackList_softUpdate(BlackList *lst)
 {
-  static int	error_count = 0;
-  struct stat	status;
-  int		fd = -1;
+  static unsigned int	error_count = 0;
+  struct stat		status;
+  int			fd = -1;
   
   if (stat(lst->args_->ipfile, &status)==-1) {
     ++error_count;

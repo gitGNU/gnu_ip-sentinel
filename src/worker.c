@@ -80,7 +80,7 @@ Worker_free(struct Worker *worker)
 void
 Worker_sendJob(struct Worker *worker, struct RequestInfo const *request)
 {
-  static int		error_count = 0;
+  static unsigned int	error_count = 0;
   int			ret;
 
     // cleanup died child
@@ -105,7 +105,7 @@ Worker_sendJob(struct Worker *worker, struct RequestInfo const *request)
 static void
 Worker_executeJob(struct Worker const *worker, struct ScheduleInfo const *job)
 {
-  static int		error_count = 0;
+  static unsigned int	error_count = 0;
     // prevent ugly casts...
   void const *		addr_v = &job->address;
   int			ret;
@@ -264,7 +264,7 @@ Worker_scheduleNewJob(struct Worker *worker, struct PriorityQueue *queue, time_t
 {
   struct RequestInfo	request;
   struct ScheduleInfo	job;
-  static int		error_count = 0;
+  static unsigned  int	error_count = 0;
   size_t		cnt = read(worker->fd, &request, sizeof(request));
 
   if (cnt!=sizeof(request)) {
@@ -316,7 +316,7 @@ static void
 Worker_run(struct Worker *worker)
 {
   struct PriorityQueue	jobqueue;
-  int			error_count = 0;
+  unsigned int		error_count = 0;
 
   PriorityQueue_init(&jobqueue, Worker_jobCompare, 1023, sizeof(struct ScheduleInfo));
   
