@@ -302,7 +302,7 @@ run(int sock, int if_idx, char const *filename)
   AntiDOS			anti_dos;
   int				error_count = 0;
   struct sockaddr_ll		addr;
-  socklen_t			from_len = sizeof(addr);
+  socklen_t			from_len;
   char				buffer[4096];
   ArpMessage const * const	msg    = reinterpret_cast(ArpMessage const *)(buffer);
   struct in_addr const	*	src_ip = reinterpret_cast(struct in_addr const *)(msg->data.arp_spa);
@@ -320,8 +320,10 @@ run(int sock, int if_idx, char const *filename)
     struct ether_addr		mac_buffer;
     
     AntiDOS_update(&anti_dos);
-    size = TEMP_FAILURE_RETRY(recvfrom(sock, buffer, sizeof buffer, 0,
-				       (struct sockaddr *)(&addr), &from_len));
+
+    from_len = sizeof(addr);
+    size     = TEMP_FAILURE_RETRY(recvfrom(sock, buffer, sizeof buffer, 0,
+					   (struct sockaddr *)(&addr), &from_len));
 
     if (static_cast(ssize_t)(size)==-1) {
       ++error_count;
