@@ -36,7 +36,8 @@ typedef struct {
 } BlackList;
 
 struct ether_addr const *
-BlackList_getMac(BlackList const *lst, struct in_addr const ip, struct ether_addr *res);
+BlackList_getMac(BlackList const *lst, struct in_addr const ip,
+		 struct ether_addr const *mac, struct ether_addr *res);
 
 void		BlackList_init(BlackList *lst, struct Arguments const *args);
 void		BlackList_free(BlackList *);
