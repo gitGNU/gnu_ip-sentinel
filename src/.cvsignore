@@ -1,7 +1,0 @@
-.deps
-.gdb_history
-blacklist-check
-blacklist-parser
-ip-sentinel
-prioqueue-check
-simulate
