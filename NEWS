@@ -1,7 +1,7 @@
 Version 0.12 (2005-03-29)
 =========================
 	- FEATURE: added an '--action' option to execute a program when a
-	  disallowed MAC packet was detected
+	  disallowed ARP packet was detected
 
 	- MINOR LEGACY BREAKAGE: sorting of IP addresses happens now in an
 	  endian-neutral manner. This can change the behavior in ambiguous
