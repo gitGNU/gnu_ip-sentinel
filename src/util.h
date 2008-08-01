@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <net/ethernet.h>
 
-
   /*@-namechecks@*/
 #ifndef __cplusplus
 #  define cAsT_(X)              (X))
@@ -77,6 +76,7 @@ xstrcat(char **dst, size_t *cnt, char const *src)
   xstrcatn(dst, cnt, src, strlen(src));
 }
 
+struct in_addr;
 void writeUInt(int fd, unsigned int nr);
 void writeMsgTimestamp(int fd);
 void writeIP(int fd, struct in_addr);

@@ -19,22 +19,8 @@
 #ifndef H_ENSC_IPSENTINEL_SRC_COMPAT_H
 #define H_ENSC_IPSENTINEL_SRC_COMPAT_H
 
-#if defined(__dietlibc__) && !defined(ENSC_DIETLIBC_C99) && defined(__STRICT_ANSI__) && defined(__STDC_VERSION__)
-  // fixed in 0.25+
-#  include <sys/cdefs.h>
-#  undef inline
-
-#  undef  __STRICT_ANSI__
-#  include <stdint.h>
-#  define __STRICT_ANSI__
-#endif
-
 #ifdef __dietlibc__
-  // fixed in 0.27+
-#  define ethhdr		ethhdrX
-#  include <net/ethernet.h>
-#  undef  ethhdr
-
+struct ether_addr;
 #  ifndef HAVE_DIET_ETHER_NTOA
 char *			ether_ntoa(struct ether_addr const *addr);
 #  endif
@@ -44,22 +30,9 @@ struct ether_addr *	ether_aton_r(const char *asc, struct ether_addr *addr);
 #  endif
 #endif
 
-
-#ifndef __dietlibc__
-#  include <stropts.h>
-#else
-#  include <sys/ioctl.h>
-#endif
-
-#ifdef __dietlibc__
-#  define sin	XsinX
-#endif
-#include <netinet/in.h>
-#undef sin
-
-
 #ifdef __dietlibc__
 #include <net/if_arp.h>
+#include <net/ethernet.h>
 #include <stdint.h>
 
 struct  ether_arp {
